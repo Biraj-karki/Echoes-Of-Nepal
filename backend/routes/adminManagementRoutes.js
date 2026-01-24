@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-// Admin-only routes with protection
-router.get("/users", adminProtect, listUsers);  // Fetch users
-router.get("/stories", adminProtect, listStories);  // Fetch stories
-router.delete("/stories/:id", adminProtect, adminDeleteStory);  // Delete story
-router.delete("/users/:id", adminProtect, adminDeleteUser);  // Delete user
+router.get("/users", adminProtect, listUsers);
+router.get("/stories", adminProtect, listStories);
+
+router.delete("/stories/:id", adminProtect, adminDeleteStory);
+router.delete("/users/:id", adminProtect, adminDeleteUser);
 
 export default router;
