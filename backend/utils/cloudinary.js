@@ -1,50 +1,30 @@
 // backend/utils/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
 
-// ✅ Cloudinary config (must exist in .env)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const normalizeToBuffer = (input) => {
-  if (!input) return null;
-
-  // already Buffer
-  if (Buffer.isBuffer(input)) return input;
-
-  // common case: { type: "Buffer", data: [...] }
-  if (typeof input === "object" && Array.isArray(input.data)) {
-    return Buffer.from(input.data);
-  }
-
-  // Uint8Array / TypedArray
-  if (input instanceof Uint8Array) return Buffer.from(input);
-
-  // ArrayBuffer
-  if (input instanceof ArrayBuffer) return Buffer.from(new Uint8Array(input));
-
-  return null;
-};
-
-// ✅ This matches how YOU are calling it:
-// uploadBufferToCloudinary({ buffer, mimetype, folder })
+/**
+ * Upload a file buffer to Cloudinary using upload_stream.
+ * Returns: { secure_url, public_id, resource_type }
+ */
 export const uploadBufferToCloudinary = ({ buffer, mimetype, folder }) => {
-  const realBuffer = normalizeToBuffer(buffer);
-  if (!realBuffer) {
-    throw new Error(
-      "Invalid buffer: Multer memoryStorage required and file.buffer must be a Buffer"
-    );
-  }
-
-  const resourceType = mimetype?.startsWith("video") ? "video" : "image";
-
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
+    if (!buffer || !(buffer instanceof Buffer)) {
+      return reject(new Error("uploadBufferToCloudinary: buffer must be a Buffer"));
+    }
+
+    const isVideo = String(mimetype || "").startsWith("video/");
+    const resource_type = isVideo ? "video" : "image";
+
+    const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: folder || "echoes-of-nepal",
-        resource_type: resourceType,
+        folder: folder || process.env.CLOUDINARY_FOLDER || "echoes-of-nepal",
+        resource_type,
       },
       (error, result) => {
         if (error) return reject(error);
@@ -52,8 +32,17 @@ export const uploadBufferToCloudinary = ({ buffer, mimetype, folder }) => {
       }
     );
 
-    stream.end(realBuffer); // ✅ must be Buffer
+    streamifier.createReadStream(buffer).pipe(uploadStream);
   });
 };
 
-export default cloudinary;
+/**
+ * Delete a Cloudinary asset by public_id.
+ * For videos, resource_type must be "video".
+ */
+export const deleteFromCloudinary = async ({ public_id, media_type }) => {
+  if (!public_id) return null;
+
+  const resource_type = media_type === "video" ? "video" : "image";
+  return cloudinary.uploader.destroy(public_id, { resource_type });
+};

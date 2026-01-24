@@ -2,15 +2,22 @@
 import express from "express";
 import multer from "multer";
 import { protect } from "../middleware/authMiddleware.js";
+import { optionalAuth } from "../middleware/optionalAuth.js";
 import {
   createStory,
   getAllStories,
   getMyStories,
+  deleteStory,
+  deleteStoryMedia,
+  toggleLike,
+  getComments,
+  addComment,
+  deleteComment,
 } from "../controllers/storyController.js";
+
 
 const router = express.Router();
 
-// ✅ memory storage (no uploads folder needed)
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -29,16 +36,24 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per file
+  limits: { fileSize: 25 * 1024 * 1024 },
 });
 
-// Public feed
-router.get("/", getAllStories);
-
-// My stories (protected)
+router.get("/",optionalAuth, getAllStories);
 router.get("/me", protect, getMyStories);
 
-// Create story (protected) + upload multiple media
 router.post("/", protect, upload.array("media", 6), createStory);
+
+//  delete whole story + cloudinary assets
+router.delete("/:id", protect, deleteStory);
+
+// delete single media from a story + cloudinary asset
+router.delete("/:storyId/media/:mediaId", protect, deleteStoryMedia);
+
+router.post("/:id/like", protect, toggleLike);
+router.get("/:id/comments", optionalAuth, getComments);
+router.post("/:id/comments", protect, addComment);
+router.delete("/:id/comments/:commentId", protect, deleteComment);
+
 
 export default router;

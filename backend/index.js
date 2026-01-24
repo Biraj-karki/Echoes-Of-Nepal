@@ -9,6 +9,9 @@ import "./config/db.js"; // connects to Postgres
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import storyRoutes from "./routes/storyRoutes.js";
+import adminAuthRoutes from "./routes/adminAuthRoutes.js";
+import adminManagementRoutes from "./routes/adminManagementRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -38,6 +41,10 @@ app.get("/api/health", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stories", storyRoutes);
+app.use("/api/admin", adminAuthRoutes);
+app.use("/api/admin/manage", adminManagementRoutes);
+app.use("/api/admin", adminRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 
