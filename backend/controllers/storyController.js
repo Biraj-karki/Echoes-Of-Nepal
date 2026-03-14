@@ -1,6 +1,49 @@
 // backend/controllers/storyController.js
 import pool from "../config/db.js";
-import { uploadBufferToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadBufferToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary.js";
+
+/**
+ * ✅ Map helper: location_tag -> {lat, lng, display_name}
+ * Uses OpenStreetMap Nominatim (free).
+ * NOTE: Must send a User-Agent.
+ */
+async function geocodeLocationTag(locationTag) {
+  const q = (locationTag || "").trim();
+  if (!q) return { lat: null, lng: null, display_name: null };
+
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("q", q);
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        "User-Agent": "EchoesOfNepal/1.0 (contact: you@example.com)",
+        "Accept-Language": "en",
+      },
+    });
+
+    if (!res.ok) return { lat: null, lng: null, display_name: null };
+
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      return { lat: null, lng: null, display_name: null };
+    }
+
+    const first = data[0];
+    return {
+      lat: first.lat ? Number(first.lat) : null,
+      lng: first.lon ? Number(first.lon) : null,
+      display_name: first.display_name || null,
+    };
+  } catch (e) {
+    return { lat: null, lng: null, display_name: null };
+  }
+}
 
 export const getAllStories = async (req, res) => {
   try {
@@ -14,6 +57,8 @@ export const getAllStories = async (req, res) => {
         s.description,
         s.location_tag,
         s.created_at,
+        s.lat,
+        s.lng,
         u.id as user_id,
         u.name as user_name,
         u.email as user_email,
@@ -58,7 +103,6 @@ export const getAllStories = async (req, res) => {
   }
 };
 
-
 export const getMyStories = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -71,6 +115,8 @@ export const getMyStories = async (req, res) => {
         s.description,
         s.location_tag,
         s.created_at,
+        s.lat,
+        s.lng,
 
         (SELECT COUNT(*)::int FROM story_likes sl WHERE sl.story_id = s.id) AS like_count,
 
@@ -100,7 +146,6 @@ export const getMyStories = async (req, res) => {
   }
 };
 
-
 export const createStory = async (req, res) => {
   const { title, description, location_tag } = req.body;
 
@@ -109,13 +154,18 @@ export const createStory = async (req, res) => {
 
     const userId = req.user.id;
 
+    // ✅ NEW: auto geocode location_tag -> lat/lng
+    const geo = await geocodeLocationTag(location_tag);
+    const lat = geo.lat;
+    const lng = geo.lng;
+
     const storyInsert = await pool.query(
       `
-      INSERT INTO stories (user_id, title, description, location_tag)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, title, description, location_tag, created_at
+      INSERT INTO stories (user_id, title, description, location_tag, lat, lng)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, title, description, location_tag, lat, lng, created_at
       `,
-      [userId, title, description || "", location_tag || ""]
+      [userId, title, description || "", location_tag || "", lat, lng]
     );
 
     const story = storyInsert.rows[0];
@@ -125,7 +175,7 @@ export const createStory = async (req, res) => {
       const mediaType = f.mimetype.startsWith("video") ? "video" : "image";
 
       const uploadResult = await uploadBufferToCloudinary({
-        buffer: f.buffer, //  Buffer from multer memoryStorage
+        buffer: f.buffer, // Buffer from multer memoryStorage
         mimetype: f.mimetype,
         folder: process.env.CLOUDINARY_FOLDER || "echoes-of-nepal",
       });
@@ -139,10 +189,44 @@ export const createStory = async (req, res) => {
       );
     }
 
-    res.status(201).json({ story_id: story.id, message: "Story created" });
+    res.status(201).json({
+      story_id: story.id,
+      message: "Story created",
+      lat: story.lat,
+      lng: story.lng,
+      resolved_place: geo.display_name,
+    });
   } catch (err) {
     console.error("createStory error:", err);
     res.status(500).json({ error: "Failed to create story" });
+  }
+};
+
+/**
+ * ✅ NEW: markers endpoint (for map)
+ * GET /api/stories/markers
+ */
+export const getStoryMarkers = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id,
+        s.title,
+        s.location_tag,
+        s.lat,
+        s.lng,
+        s.created_at,
+        u.name as user_name
+      FROM stories s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL
+      ORDER BY s.created_at DESC
+    `);
+
+    res.json({ markers: result.rows });
+  } catch (err) {
+    console.error("getStoryMarkers error:", err.message);
+    res.status(500).json({ error: "Failed to fetch markers" });
   }
 };
 
@@ -232,7 +316,10 @@ export const deleteStoryMedia = async (req, res) => {
 
     const media = mediaRes.rows[0];
 
-    await deleteFromCloudinary({ public_id: media.public_id, media_type: media.media_type });
+    await deleteFromCloudinary({
+      public_id: media.public_id,
+      media_type: media.media_type,
+    });
     await pool.query("DELETE FROM story_media WHERE id = $1", [mediaId]);
 
     res.json({ message: "Media deleted successfully" });
@@ -241,7 +328,6 @@ export const deleteStoryMedia = async (req, res) => {
     res.status(500).json({ error: "Failed to delete media" });
   }
 };
-
 
 export const toggleLike = async (req, res) => {
   try {
@@ -352,7 +438,10 @@ export const deleteComment = async (req, res) => {
     }
 
     const { comment_user_id, story_owner_id } = check.rows[0];
-    if (Number(comment_user_id) !== Number(userId) && Number(story_owner_id) !== Number(userId)) {
+    if (
+      Number(comment_user_id) !== Number(userId) &&
+      Number(story_owner_id) !== Number(userId)
+    ) {
       return res.status(403).json({ error: "Not allowed" });
     }
 

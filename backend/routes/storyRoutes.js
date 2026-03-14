@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import { protect } from "../middleware/authMiddleware.js";
 import { optionalAuth } from "../middleware/optionalAuth.js";
+
 import {
   createStory,
   getAllStories,
@@ -13,8 +14,8 @@ import {
   getComments,
   addComment,
   deleteComment,
+  getStoryMarkers, // ✅ import from same controller
 } from "../controllers/storyController.js";
-
 
 const router = express.Router();
 
@@ -39,12 +40,16 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 },
 });
 
-router.get("/",optionalAuth, getAllStories);
+// ✅ IMPORTANT: put fixed routes BEFORE "/:id" routes if needed later
+router.get("/", optionalAuth, getAllStories);
 router.get("/me", protect, getMyStories);
+
+// ✅ Map markers endpoint
+router.get("/markers", getStoryMarkers);
 
 router.post("/", protect, upload.array("media", 6), createStory);
 
-//  delete whole story + cloudinary assets
+// delete whole story + cloudinary assets
 router.delete("/:id", protect, deleteStory);
 
 // delete single media from a story + cloudinary asset
@@ -54,6 +59,5 @@ router.post("/:id/like", protect, toggleLike);
 router.get("/:id/comments", optionalAuth, getComments);
 router.post("/:id/comments", protect, addComment);
 router.delete("/:id/comments/:commentId", protect, deleteComment);
-
 
 export default router;
