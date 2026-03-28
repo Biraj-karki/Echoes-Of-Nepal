@@ -129,11 +129,12 @@ export const login = async (req, res) => {
     const user = result.rows[0];
 
     // block login until email verified (only for email/password accounts)
-    if (user.password_hash && user.verified === false) {
-      return res.status(403).json({
-        error: "Please verify your email before logging in.",
-      });
-    }
+    // TEMPORARILY DISABLED FOR VENDOR DEVELOPMENT
+    // if (user.password_hash && user.verified === false) {
+    //   return res.status(403).json({
+    //     error: "Please verify your email before logging in.",
+    //   });
+    // }
 
     if (!user.password_hash) {
       return res
@@ -210,10 +211,20 @@ export const googleAuth = async (req, res) => {
 // --------- GET CURRENT USER (/me) ----------
 export const getMe = async (req, res) => {
   try {
-    const { id, name, email } = req.user;
-    res.json({ user: { id, name, email } });
+    const userId = req.user.id;
+    const result = await pool.query(
+      "SELECT id, name, email, bio, location, profile_image FROM users WHERE id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ user: result.rows[0] });
   } catch (err) {
     console.error("GetMe error:", err.message);
     res.status(500).json({ error: "Server error fetching user" });
   }
 };
+
