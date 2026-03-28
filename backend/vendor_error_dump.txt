@@ -1,0 +1,11 @@
+Resource is invalid
+[Cloudinary Upload] folder=echoes-vendors/docs, mimetype=image/jpeg, size=459195, type=image
+
+ERROR HANDLER: Resource is invalid
+[Cloudinary Upload] folder=echoes-vendors/docs, mimetype=image/jpeg, size=459195, type=image
+
+ERROR HANDLER: Resource is invalid
+[Cloudinary Upload] folder=echoes-vendors/docs, mimetype=image/jpeg, size=459195, type=image
+
+ERROR HANDLER: Resource is invalid
+[Cloudinary Upload] folder=echoes-of-nepal, mimetype=image/jpeg, size=459195, type=image
