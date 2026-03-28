@@ -62,6 +62,7 @@ export const getAllStories = async (req, res) => {
         u.id as user_id,
         u.name as user_name,
         u.email as user_email,
+        u.profile_image as author_profile_image,
 
         -- counts
         (SELECT COUNT(*)::int FROM story_likes sl WHERE sl.story_id = s.id) AS like_count,
@@ -117,6 +118,9 @@ export const getMyStories = async (req, res) => {
         s.created_at,
         s.lat,
         s.lng,
+        u.id as user_id,
+        u.name as user_name,
+        u.profile_image as author_profile_image,
 
         (SELECT COUNT(*)::int FROM story_likes sl WHERE sl.story_id = s.id) AS like_count,
 
@@ -131,9 +135,10 @@ export const getMyStories = async (req, res) => {
           '[]'
         ) AS media
       FROM stories s
+      JOIN users u ON u.id = s.user_id
       LEFT JOIN story_media sm ON sm.story_id = s.id
       WHERE s.user_id = $1
-      GROUP BY s.id
+      GROUP BY s.id, u.id
       ORDER BY s.created_at DESC
     `,
       [userId]
@@ -216,9 +221,11 @@ export const getStoryMarkers = async (req, res) => {
         s.lat,
         s.lng,
         s.created_at,
-        u.name as user_name
+        u.name as user_name,
+        u.profile_image as author_profile_image
       FROM stories s
       JOIN users u ON u.id = s.user_id
+
       WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL
       ORDER BY s.created_at DESC
     `);
@@ -470,3 +477,65 @@ export const getMyLikedStoryIds = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch likes" });
   }
 };
+
+export const getStoryById = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user?.id || null;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        s.id,
+        s.title,
+        s.description,
+        s.location_tag,
+        s.created_at,
+        u.id as user_id,
+        u.name as user_name,
+        u.profile_image as author_profile_image,
+
+        -- counts
+        (SELECT COUNT(*)::int FROM story_likes sl WHERE sl.story_id = s.id) AS like_count,
+        (SELECT COUNT(*)::int FROM story_comments sc WHERE sc.story_id = s.id) AS comment_count,
+
+        -- liked by me
+        CASE 
+          WHEN $2::int IS NULL THEN false
+          ELSE EXISTS(
+            SELECT 1 FROM story_likes sl 
+            WHERE sl.story_id = s.id AND sl.user_id = $2
+          )
+        END AS liked_by_me,
+
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', sm.id,
+              'media_url', sm.media_url,
+              'media_type', sm.media_type
+            )
+          ) FILTER (WHERE sm.id IS NOT NULL),
+          '[]'
+        ) AS media
+
+      FROM stories s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN story_media sm ON sm.story_id = s.id
+      WHERE s.id = $1
+      GROUP BY s.id, u.id
+      `,
+      [id, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Story not found" });
+    }
+
+    res.json({ story: result.rows[0] });
+  } catch (err) {
+    console.error("getStoryById error:", err.message);
+    res.status(500).json({ error: "Failed to fetch story" });
+  }
+};
+

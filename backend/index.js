@@ -1,7 +1,7 @@
 // backend/index.js
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -12,8 +12,10 @@ import storyRoutes from "./routes/storyRoutes.js";
 import adminAuthRoutes from "./routes/adminAuthRoutes.js";
 import adminManagementRoutes from "./routes/adminManagementRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-
-dotenv.config();
+import savedRoutes from "./routes/savedRoutes.js";
+import tourismPublicRoutes from "./routes/tourismPublicRoutes.js";
+import vendorRoutes from "./routes/vendorRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 const app = express();
 
@@ -44,7 +46,10 @@ app.use("/api/stories", storyRoutes);
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin/manage", adminManagementRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/saved", savedRoutes);
+app.use("/api/tourism", tourismPublicRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { MessageCircle, Heart, Trash2, MapPin } from "lucide-react";
 import { useAuth } from "@/app/AuthProvider";
+import SaveButton from "./SaveButton";
+
 
 type StoryMedia = {
     id?: number | string;
@@ -22,6 +24,7 @@ type Story = {
     user_id?: number;
     user_name?: string;
     user_email?: string;
+    author_profile_image?: string;
     like_count?: number;
     comment_count?: number;
     liked_by_me?: boolean;
@@ -30,8 +33,10 @@ type Story = {
         name?: string;
         email?: string;
         picture_url?: string;
+        profile_image?: string;
     };
     media?: StoryMedia[];
+
 };
 
 interface StoryCardProps {
@@ -84,19 +89,35 @@ export default function StoryCard({
                     </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                    <div className="text-sm font-semibold text-slate-200">
-                        {story.user?.name || story.user_name || "Unknown"}
+                <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                        <div className="text-sm font-semibold text-white">
+                            {story.user?.name || story.user_name || "Unknown"}
+                        </div>
+                        {isOwner && (
+                            <button
+                                onClick={() => onDelete(storyId)}
+                                className="mt-1 text-[10px] flex items-center gap-1 text-red-400 opacity-60 hover:opacity-100 transition-opacity ml-auto"
+                            >
+                                <Trash2 size={10} /> Delete
+                            </button>
+                        )}
                     </div>
-                    {isOwner && (
-                        <button
-                            onClick={() => onDelete(storyId)}
-                            className="mt-2 text-xs flex items-center gap-1 text-red-400 opacity-60 hover:opacity-100 transition-opacity ml-auto"
-                        >
-                            <Trash2 size={12} /> Delete
-                        </button>
-                    )}
+                    <div className="h-10 w-10 rounded-full bg-slate-800 border border-white/10 overflow-hidden flex-shrink-0">
+                        {story.author_profile_image || story.user?.picture_url || story.user?.profile_image ? (
+                            <img 
+                                src={story.author_profile_image || story.user?.picture_url || story.user?.profile_image} 
+                                alt={story.user_name || "Author"} 
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
+                                {(story.user?.name || story.user_name || "U")[0]}
+                            </div>
+                        )}
+                    </div>
                 </div>
+
             </div>
 
             {/* DESCRIPTION */}
@@ -143,6 +164,11 @@ export default function StoryCard({
                     <MessageCircle size={18} className={commentsOpen ? "fill-current opacity-20" : ""} />
                     <span>{story.comment_count || 0}</span>
                 </button>
+
+                <div className="ml-auto">
+                    <SaveButton itemType="story" itemId={storyId} />
+                </div>
+
             </div>
 
             {/* COMMENTS SECTION */}

@@ -19,7 +19,8 @@ export const uploadBufferToCloudinary = ({ buffer, mimetype, folder }) => {
     }
 
     const isVideo = String(mimetype || "").startsWith("video/");
-    const resource_type = isVideo ? "video" : "image";
+    const isImage = String(mimetype || "").startsWith("image/");
+    const resource_type = isVideo ? "video" : (isImage ? "image" : "auto");
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {

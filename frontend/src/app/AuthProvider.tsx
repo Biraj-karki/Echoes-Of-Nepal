@@ -12,7 +12,12 @@ type User = {
   id: number;
   name: string;
   email: string;
+  bio?: string;
+  location?: string;
+  profile_image?: string;
+  profileImage?: string; // Standardized field name for frontend
 };
+
 
 type AuthContextType = {
   user: User | null;
@@ -52,7 +57,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await res.json();
+      if (data.user) {
+        // Map backend snake_case to frontend camelCase for consistency
+        data.user.profileImage = data.user.profile_image;
+      }
       setUser(data.user);
+
     } catch (err) {
       console.error("refreshUser error", err);
       setUser(null);

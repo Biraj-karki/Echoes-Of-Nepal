@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LayoutDashboard, Users, Images, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Images, LogOut, Shield, MapPin, MountainSnow, Map, Globe, Briefcase } from "lucide-react";
+
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -152,7 +153,28 @@ export default function AdminLayout({
                 icon={<Images size={18} />}
                 label="Stories"
               />
+              <NavItem
+                href="/admin/destinations"
+                icon={<MapPin size={18} />}
+                label="Destinations"
+              />
+              <NavItem
+                href="/admin/treks"
+                icon={<MountainSnow size={18} />}
+                label="Treks"
+              />
+              <NavItem
+                href="/admin/districts"
+                icon={<Map size={18} />}
+                label="Districts"
+              />
+              <NavItem
+                href="/admin/vendors"
+                icon={<Briefcase size={18} />}
+                label="Vendors"
+              />
             </div>
+
 
             <div className="mt-6">
               <button
@@ -171,23 +193,43 @@ export default function AdminLayout({
           {/* Top bar */}
           <div className="sticky top-0 z-10 border-b border-white/10 bg-[#060a16]/60 backdrop-blur-xl">
             <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-              <div>
-                <div className="text-sm text-slate-400">Admin</div>
-                <div className="text-xl font-black">
-                  {pathname?.includes("/admin/users")
-                    ? "Users"
-                    : pathname?.includes("/admin/stories")
-                    ? "Stories"
-                    : "Dashboard"}
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 mb-0.5">Admin Workspace</div>
+                  <div className="text-xl font-black text-white">
+                    {pathname?.includes("/admin/users") ? "Users"
+                      : pathname?.includes("/admin/stories") ? "Stories"
+                      : pathname?.includes("/admin/destinations") ? "Destinations"
+                      : pathname?.includes("/admin/treks") ? "Treks"
+                      : pathname?.includes("/admin/districts") ? "Districts"
+                      : pathname?.includes("/admin/vendors") ? "Vendors"
+                      : "Dashboard"}
+                  </div>
                 </div>
+                <div className="h-8 w-[1px] bg-white/10 hidden sm:block"></div>
+                <Link 
+                  href="/" 
+                  className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold transition-all text-slate-400 hover:text-white"
+                >
+                  <Globe size={14} />
+                  View Site
+                </Link>
               </div>
 
-              {/* ✅ No hydration mismatch */}
-              <div className="text-xs text-slate-400">
-                {!mounted ? "Checking session..." : token ? "Authenticated" : "Not logged in"}
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex flex-col items-end">
+                    <div className="text-xs font-black text-white">Administrator</div>
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">System Root</div>
+                </div>
+                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-[1px]">
+                    <div className="w-full h-full rounded-[15px] bg-[#060a16] flex items-center justify-center font-black text-emerald-400">
+                        A
+                    </div>
+                </div>
               </div>
             </div>
           </div>
+
 
           <div className="mx-auto max-w-6xl px-6 py-6">{children}</div>
         </main>

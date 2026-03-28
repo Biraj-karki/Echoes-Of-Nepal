@@ -3,6 +3,7 @@ import StatsSection from "@/components/home/StatsSection";
 import FeaturedDestinations from "@/components/home/FeaturedDestinations";
 import ExploreMapCTA from "@/components/home/ExploreMapCTA";
 import LatestStories from "@/components/home/LatestStories";
+import VendorCTASection from "@/components/home/VendorCTASection";
 import CallToAction from "@/components/home/CallToAction";
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
       <FeaturedDestinations />
       <ExploreMapCTA />
       <LatestStories />
+      <VendorCTASection />
       <CallToAction />
     </main>
   );

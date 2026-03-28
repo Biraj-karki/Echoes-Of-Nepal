@@ -14,8 +14,10 @@ import {
   getComments,
   addComment,
   deleteComment,
-  getStoryMarkers, // ✅ import from same controller
+  getStoryMarkers,
+  getStoryById, // ✅ import
 } from "../controllers/storyController.js";
+
 
 const router = express.Router();
 
@@ -50,7 +52,9 @@ router.get("/markers", getStoryMarkers);
 router.post("/", protect, upload.array("media", 6), createStory);
 
 // delete whole story + cloudinary assets
+router.get("/:id", optionalAuth, getStoryById);
 router.delete("/:id", protect, deleteStory);
+
 
 // delete single media from a story + cloudinary asset
 router.delete("/:storyId/media/:mediaId", protect, deleteStoryMedia);

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import DistrictDetailPanel from "@/components/DistrictDetailPanel";
-import mockDistricts from "@/data/mockDistricts.json";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -28,32 +27,39 @@ type Story = {
     user?: { name?: string };
 };
 
+
 export default function ExplorePage() {
     const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
     const [realStories, setRealStories] = useState<Story[]>([]);
-    const [loadingStories, setLoadingStories] = useState(true);
+    const [districts, setDistricts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchStories = async () => {
-            setLoadingStories(true);
+        const fetchData = async () => {
+            setLoading(true);
             try {
                 const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-                const res = await fetch(`${API_BASE}/api/stories`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                    cache: "no-store",
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    setRealStories(Array.isArray(data?.stories) ? data.stories : []);
-                }
+                const [storiesRes, tourismRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/stories`, {
+                        headers: token ? { Authorization: `Bearer ${token}` } : {},
+                        cache: "no-store",
+                    }),
+                    fetch(`${API_BASE}/api/tourism/districts`)
+                ]);
+                
+                const storiesData = await storiesRes.json();
+                const tourismData = await tourismRes.json();
+
+                if (storiesRes.ok) setRealStories(storiesData.stories || []);
+                if (tourismRes.ok) setDistricts(tourismData.districts || []);
             } catch (e) {
-                console.error("Failed to load stories", e);
+                console.error("Failed to load data", e);
             } finally {
-                setLoadingStories(false);
+                setLoading(false);
             }
         };
 
-        fetchStories();
+        fetchData();
     }, []);
 
     const handleSelectDistrict = (id: string, name: string) => {
@@ -65,7 +71,6 @@ export default function ExplorePage() {
     };
 
     // Filter real stories for the selected district
-    // The district ID is usually uppercase like "KATHMANDU". The location tag could be "Kathmandu"
     const districtStories = selectedDistrictId 
         ? realStories
             .filter(s => s.location_tag?.toLowerCase() === selectedDistrictId.toLowerCase())
@@ -78,20 +83,22 @@ export default function ExplorePage() {
             }))
         : [];
 
-    // Find the district data from mock data, or generate an empty skeleton
-    let mockDistrictData = mockDistricts.find((d) => d.id === selectedDistrictId);
+    const activeDistrictData = districts.find((d) => d.id === selectedDistrictId);
     
-    const activeDistrict = selectedDistrictId 
+    const activeDistrict = selectedDistrictId && activeDistrictData
         ? {
-            id: selectedDistrictId,
-            name: mockDistrictData?.name || selectedDistrictId.replace(/^\w/, c => c.toUpperCase()),
-            description: mockDistrictData?.description || `Explore the local culture, mountains, and pristine landscapes of the beautiful ${selectedDistrictId.toLowerCase()} region.`,
-            destinations: mockDistrictData?.destinations || [],
-            treks: mockDistrictData?.treks || [],
-            // Combine mock stories (if any) with real stories from DB, giving precedence to real stories
-            stories: [...districtStories, ...(mockDistrictData?.stories || [])]
+            ...activeDistrictData,
+            stories: [...districtStories, ...(activeDistrictData.stories || [])]
         } 
-        : null;
+        : selectedDistrictId ? {
+            id: selectedDistrictId,
+            name: selectedDistrictId.replace(/^\w/, c => c.toUpperCase()),
+            description: `Explore the local culture, mountains, and pristine landscapes of the beautiful ${selectedDistrictId.toLowerCase()} region.`,
+            destinations: [],
+            treks: [],
+            stories: districtStories
+        } : null;
+
 
     return (
          <div className="relative w-full h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] overflow-hidden bg-[#020617]">
