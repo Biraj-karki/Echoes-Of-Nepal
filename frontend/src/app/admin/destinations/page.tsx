@@ -21,6 +21,13 @@ export default function AdminDestinations() {
         lat: 27.7,
         lng: 85.3,
         featured: false,
+        image: "",
+        highlights: "",
+        best_time: "",
+        things_to_do: "",
+        tips: "",
+        how_to_reach: "",
+        entry_fee: ""
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
@@ -48,14 +55,31 @@ export default function AdminDestinations() {
         }
     };
 
+    const formatArray = (val: any) => {
+        if (!val) return "";
+        if (Array.isArray(val)) return val.join(", ");
+        try {
+            const parsed = JSON.parse(val);
+            return Array.isArray(parsed) ? parsed.join(", ") : val;
+        } catch (e) {
+            return val;
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
             const token = localStorage.getItem("admin_token");
             const data = new FormData();
-            Object.entries(formData).forEach(([key, val]) => data.append(key, val.toString()));
-            if (imageFile) data.append("image", imageFile);
+            Object.entries(formData).forEach(([key, val]) => {
+                if (key !== "image") data.append(key, val.toString());
+            });
+            if (imageFile) {
+                data.append("image", imageFile);
+            } else if (formData.image) {
+                data.append("image", formData.image);
+            }
 
             const url = editingId 
                 ? `${API_BASE}/api/admin/destinations/${editingId}` 
@@ -71,12 +95,16 @@ export default function AdminDestinations() {
             if (res.ok) {
                 setIsModalOpen(false);
                 setEditingId(null);
-                setFormData({ name: "", district_id: "", category: "", description: "", rating: 4.5, lat: 27.7, lng: 85.3, featured: false });
+                setFormData({ name: "", district_id: "", category: "", description: "", rating: 4.5, lat: 27.7, lng: 85.3, featured: false, image: "", highlights: "", best_time: "", things_to_do: "", tips: "", how_to_reach: "", entry_fee: "" });
                 setImageFile(null);
                 fetchData();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Failed to save destination");
             }
         } catch (e) {
             console.error(e);
+            alert("Network error. Check console.");
         } finally {
             setSaving(false);
         }
@@ -187,7 +215,14 @@ export default function AdminDestinations() {
                                                         rating: dest.rating ?? 4.5,
                                                         lat: dest.lat ?? 27.7,
                                                         lng: dest.lng ?? 85.3,
-                                                        featured: !!dest.featured
+                                                        featured: !!dest.featured,
+                                                        image: dest.image || "",
+                                                        highlights: formatArray(dest.highlights),
+                                                        best_time: dest.best_time || dest.best_season || "",
+                                                        things_to_do: formatArray(dest.things_to_do || dest.activities),
+                                                        tips: formatArray(dest.tips),
+                                                        how_to_reach: dest.how_to_reach || "",
+                                                        entry_fee: dest.entry_fee || ""
                                                     });
                                                     setIsModalOpen(true);
                                                 }}
@@ -277,6 +312,69 @@ export default function AdminDestinations() {
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
                                         value={formData.lng}
                                         onChange={(e) => setFormData({...formData, lng: parseFloat(e.target.value)})}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Highlights (comma separated)</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.highlights}
+                                        onChange={(e) => setFormData({...formData, highlights: e.target.value})}
+                                        placeholder="Ancient temples, Mountain views"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Best Season / Time</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.best_time}
+                                        onChange={(e) => setFormData({...formData, best_time: e.target.value})}
+                                        placeholder="Spring & Autumn"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Things to Do (comma separated)</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.things_to_do}
+                                        onChange={(e) => setFormData({...formData, things_to_do: e.target.value})}
+                                        placeholder="Photography, Sightseeing"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Travel Tips (comma separated)</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.tips}
+                                        onChange={(e) => setFormData({...formData, tips: e.target.value})}
+                                        placeholder="Carry mineral water, Respect local culture"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">How to Reach</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.how_to_reach}
+                                        onChange={(e) => setFormData({...formData, how_to_reach: e.target.value})}
+                                        placeholder="Take a bus from Kathmandu..."
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Entry Fee</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.entry_fee}
+                                        onChange={(e) => setFormData({...formData, entry_fee: e.target.value})}
+                                        placeholder="Free or NPR 200"
                                     />
                                 </div>
                             </div>

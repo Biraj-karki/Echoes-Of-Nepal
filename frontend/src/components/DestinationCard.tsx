@@ -1,10 +1,13 @@
 import { Star } from "lucide-react";
 import SaveButton from "./SaveButton";
+import Link from "next/link";
 
 
 export default function DestinationCard({ destination }: { destination: any }) {
+    const itemType = destination.type === 'trek' ? 'trek' : 'destination';
+
     return (
-        <div className="bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all flex flex-col group cursor-pointer relative shadow-lg">
+        <Link href={`/${itemType}/${destination.id}`} className="bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-all flex flex-col group cursor-pointer relative shadow-lg">
             <div className="h-40 w-full overflow-hidden relative">
                 <img 
                     src={destination.image} 
@@ -21,8 +24,8 @@ export default function DestinationCard({ destination }: { destination: any }) {
                         {destination.rating}
                     </div>
                 )}
-                <div className="absolute top-2 right-2 z-10">
-                    <SaveButton itemType="destination" itemId={destination.id || destination.name} />
+                <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+                    <SaveButton itemType={itemType} itemId={destination.id || destination.name} />
                 </div>
 
             </div>
@@ -32,6 +35,6 @@ export default function DestinationCard({ destination }: { destination: any }) {
                     {destination.description}
                 </p>
             </div>
-        </div>
+        </Link>
     );
 }

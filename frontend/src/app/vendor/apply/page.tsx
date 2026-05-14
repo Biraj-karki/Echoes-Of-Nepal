@@ -13,8 +13,10 @@ import {
   AlertCircle,
   Building,
   Image as ImageIcon,
-  ArrowRight
+  ArrowRight 
 } from "lucide-react";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 
 export default function VendorApplyPage() {
   const router = useRouter();
@@ -54,14 +56,37 @@ export default function VendorApplyPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateForm = () => {
+    if (!formData.business_name || !formData.vendor_type || !formData.district_slug || !formData.phone || !formData.email || !formData.pan_number || !formData.registration_number) {
+      setError("Please fill in all required business and verification fields.");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please provide a valid business email address.");
+      return false;
+    }
+
+    if (!documentFile) {
+      setError("An official document is required for verification.");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    if (!validateForm()) return;
+
+    setLoading(true);
 
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("You must be logged in to apply as a vendor.");
+      setError("Authentication required. Please log in to your account first.");
       setLoading(false);
       return;
     }
@@ -84,10 +109,10 @@ export default function VendorApplyPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to submit application");
+      if (!res.ok) throw new Error(data.error || "We encountered an error processing your application.");
 
       setSuccess(true);
-      setTimeout(() => router.push("/profile"), 3000); // Redirect to profile after success
+      setTimeout(() => router.push("/profile"), 4000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -140,12 +165,11 @@ export default function VendorApplyPage() {
 
         <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
           
-          {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-4">
-              <AlertCircle size={20} />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-          )}
+          <Alert 
+            type="error" 
+            message={error || ""} 
+            className="mb-8" 
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Business Info */}
@@ -275,20 +299,14 @@ export default function VendorApplyPage() {
           </div>
 
           <div className="mt-10 border-t border-white/5 pt-8 flex justify-end">
-             <button 
+             <Button 
                 type="submit" 
-                disabled={loading}
-                className="bg-white text-black hover:bg-slate-200 px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-[1.02] shadow-xl hover:shadow-white/20"
+                loading={loading}
+                className="bg-white text-black hover:bg-slate-200 px-8 py-7 rounded-xl font-black uppercase tracking-widest text-xs transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-[1.02] shadow-xl hover:shadow-white/20"
               >
-                {loading ? (
-                   <span className="flex items-center gap-2">
-                       <span className="h-4 w-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></span>
-                       Submitting...
-                   </span>
-                ) : (
-                    <>Submit Application <ArrowRight size={18} /></>
-                )}
-              </button>
+                {loading ? "Submitting Application..." : "Submit Application"}
+                {!loading && <ArrowRight size={18} />}
+              </Button>
           </div>
         </form>
       </div>

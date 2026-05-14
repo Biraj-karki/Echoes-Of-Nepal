@@ -15,7 +15,8 @@ import {
   addComment,
   deleteComment,
   getStoryMarkers,
-  getStoryById, // ✅ import
+  getStoryById,
+  getStoriesByTarget
 } from "../controllers/storyController.js";
 
 
@@ -48,6 +49,7 @@ router.get("/me", protect, getMyStories);
 
 // ✅ Map markers endpoint
 router.get("/markers", getStoryMarkers);
+router.get("/target", optionalAuth, getStoriesByTarget);
 
 router.post("/", protect, upload.array("media", 6), createStory);
 

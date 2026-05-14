@@ -103,40 +103,44 @@ export default function ExplorePage() {
     return (
          <div className="relative w-full h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] overflow-hidden bg-[#020617]">
              
-             {/* Map Layer */}
-             <div className="absolute inset-0 z-0">
-                 <NepalMap 
-                     selectedDistrictId={selectedDistrictId} 
-                     onSelectDistrict={handleSelectDistrict} 
-                 />
-             </div>
-
-             {/* UI Overlay Container pointer-events-none so it doesn't block map */}
-             <div className="absolute inset-0 pointer-events-none z-10 flex justify-between p-6">
-                 
-                 {/* Floating Header */}
-                 <div className="pointer-events-auto w-full md:w-auto h-fit">
-                    <div className="bg-slate-950/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-xl max-w-sm">
-                        <h1 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent transform transition-all duration-300">
-                            Discover Nepal
+              {/* Map Layer */}
+              <div className="absolute inset-0 z-0">
+                  <NepalMap 
+                      selectedDistrictId={selectedDistrictId} 
+                      onSelectDistrict={handleSelectDistrict} 
+                  />
+              </div>
+ 
+              {/* UI Overlay Container pointer-events-none so it doesn't block map */}
+              <div className="absolute inset-0 pointer-events-none z-10 flex justify-between p-8">
+                  
+                  {/* Floating Header */}
+                  <div className="pointer-events-auto w-full md:w-auto h-fit">
+                     <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2rem] shadow-2xl max-w-sm">
+                        <div className="inline-flex px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[9px] font-black tracking-[0.2em] text-blue-400 uppercase mb-4">
+                            Interactive Map
+                        </div>
+                        <h1 className="text-3xl font-black text-white leading-tight mb-4">
+                            Explore <br />
+                            <span className="italic">Echoes of Nepal</span>
                         </h1>
-                        <p className="mt-2 text-sm text-slate-300">
-                            Hover over and click any district on the map to explore destinations, real user stories, and hiking trails.
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                            Interact with the map to discover hidden destinations, read authenticated traveler stories, and plan your next Himalayan adventure.
                         </p>
-                    </div>
-                 </div>
-
-             </div>
-             
-             {/* Side Panel Overlay */}
-             <div className="absolute top-0 right-0 h-full pointer-events-auto z-50">
-                 {activeDistrict && (
-                     <DistrictDetailPanel 
-                         district={activeDistrict} 
-                         onClose={handleClosePanel} 
-                     />
-                 )}
-             </div>
+                     </div>
+                  </div>
+ 
+              </div>
+              
+              {/* Side Panel Overlay */}
+              <div className="absolute top-0 right-0 h-full pointer-events-auto z-50">
+                  {activeDistrict && (
+                      <DistrictDetailPanel 
+                          district={activeDistrict} 
+                          onClose={handleClosePanel} 
+                      />
+                  )}
+              </div>
          </div>
     );
 }

@@ -152,10 +152,15 @@ export const getMyStories = async (req, res) => {
 };
 
 export const createStory = async (req, res) => {
-  const { title, description, location_tag } = req.body;
+  const { title, description, location_tag, destination_id, trek_id } = req.body;
 
   try {
-    if (!title) return res.status(400).json({ error: "Title is required" });
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({ error: "A descriptive title is required for your story." });
+    }
+    if (!description || description.trim().length < 10) {
+      return res.status(400).json({ error: "Please provide a more detailed description (at least 10 characters)." });
+    }
 
     const userId = req.user.id;
 
@@ -166,11 +171,11 @@ export const createStory = async (req, res) => {
 
     const storyInsert = await pool.query(
       `
-      INSERT INTO stories (user_id, title, description, location_tag, lat, lng)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO stories (user_id, title, description, location_tag, lat, lng, destination_id, trek_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id, title, description, location_tag, lat, lng, created_at
       `,
-      [userId, title, description || "", location_tag || "", lat, lng]
+      [userId, title, description || "", location_tag || "", lat, lng, destination_id || null, trek_id || null]
     );
 
     const story = storyInsert.rows[0];
@@ -538,4 +543,44 @@ export const getStoryById = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch story" });
   }
 };
+export const getStoriesByTarget = async (req, res) => {
+  const { type, id } = req.query; // type: destination or trek
+  const userId = req.user?.id || null;
 
+  try {
+    let whereClause = "";
+    if (type === "destination") whereClause = "WHERE s.destination_id = $1";
+    else if (type === "trek") whereClause = "WHERE s.trek_id = $1";
+    else return res.status(400).json({ error: "Invalid type" });
+
+    const result = await pool.query(
+      `
+      SELECT 
+        s.id,
+        s.title,
+        s.description,
+        s.created_at,
+        u.id as user_id,
+        u.name as user_name,
+        u.profile_image as author_profile_image,
+        COALESCE(
+          json_agg(
+            json_build_object('media_url', sm.media_url, 'media_type', sm.media_type)
+          ) FILTER (WHERE sm.id IS NOT NULL),
+          '[]'
+        ) AS media
+      FROM stories s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN story_media sm ON sm.story_id = s.id
+      ${whereClause}
+      GROUP BY s.id, u.id
+      ORDER BY s.created_at DESC
+      `,
+      [id]
+    );
+    res.json({ stories: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch stories" });
+  }
+};
