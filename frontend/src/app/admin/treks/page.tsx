@@ -20,6 +20,11 @@ export default function AdminTreks() {
         altitude: "",
         description: "",
         featured: false,
+        image: "",
+        highlights: "",
+        best_time: "",
+        activities: "",
+        route: ""
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
@@ -47,14 +52,31 @@ export default function AdminTreks() {
         }
     };
 
+    const formatArray = (val: any) => {
+        if (!val) return "";
+        if (Array.isArray(val)) return val.join(", ");
+        try {
+            const parsed = JSON.parse(val);
+            return Array.isArray(parsed) ? parsed.join(", ") : val;
+        } catch (e) {
+            return val;
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
             const token = localStorage.getItem("admin_token");
             const data = new FormData();
-            Object.entries(formData).forEach(([key, val]) => data.append(key, val.toString()));
-            if (imageFile) data.append("image", imageFile);
+            Object.entries(formData).forEach(([key, val]) => {
+                if (key !== "image") data.append(key, val.toString());
+            });
+            if (imageFile) {
+                data.append("image", imageFile);
+            } else if (formData.image) {
+                data.append("image", formData.image);
+            }
 
             const url = editingId 
                 ? `${API_BASE}/api/admin/treks/${editingId}` 
@@ -70,12 +92,16 @@ export default function AdminTreks() {
             if (res.ok) {
                 setIsModalOpen(false);
                 setEditingId(null);
-                setFormData({ name: "", district_id: "", difficulty: "Moderate", duration: "", altitude: "", description: "", featured: false });
+                setFormData({ name: "", district_id: "", difficulty: "Moderate", duration: "", altitude: "", description: "", featured: false, image: "", highlights: "", best_time: "", activities: "", route: "" });
                 setImageFile(null);
                 fetchData();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Failed to save trek");
             }
         } catch (e) {
             console.error(e);
+            alert("Network error.");
         } finally {
             setSaving(false);
         }
@@ -188,7 +214,12 @@ export default function AdminTreks() {
                                                         duration: trek.duration || "",
                                                         altitude: trek.altitude || "",
                                                         description: trek.description || "",
-                                                        featured: !!trek.featured
+                                                        featured: !!trek.featured,
+                                                        image: trek.image || "",
+                                                        highlights: formatArray(trek.highlights),
+                                                        best_time: trek.best_time || trek.best_season || "",
+                                                        activities: formatArray(trek.activities),
+                                                        route: trek.route || ""
                                                     });
                                                     setIsModalOpen(true);
                                                 }}
@@ -271,6 +302,49 @@ export default function AdminTreks() {
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
                                         value={formData.altitude}
                                         onChange={(e) => setFormData({...formData, altitude: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Main Route Overview</label>
+                                    <input 
+                                        type="text"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.route}
+                                        onChange={(e) => setFormData({...formData, route: e.target.value})}
+                                        placeholder="Syabrubesi -> Kyanjin Gompa"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Highlights (comma separated)</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.highlights}
+                                        onChange={(e) => setFormData({...formData, highlights: e.target.value})}
+                                        placeholder="Panaromic peaks, High passes"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Best Season / Time</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.best_time}
+                                        onChange={(e) => setFormData({...formData, best_time: e.target.value})}
+                                        placeholder="September to November"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Experiences & Activities (comma separated)</label>
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50" 
+                                        value={formData.activities}
+                                        onChange={(e) => setFormData({...formData, activities: e.target.value})}
+                                        placeholder="Camping, Stargazing, Tea house stay"
                                     />
                                 </div>
                             </div>

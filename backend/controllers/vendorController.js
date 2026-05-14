@@ -10,10 +10,20 @@ export const applyVendor = async (req, res) => {
         const userId = req.user.id;
         const { business_name, vendor_type, district_slug, description, phone, email, pan_number, registration_number } = req.body;
 
+        // Validation
+        if (!business_name || !vendor_type || !district_slug || !description || !phone || !email || !pan_number || !registration_number) {
+            return res.status(400).json({ error: "All business and verification fields are required." });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: "Invalid business email address." });
+        }
+
         // Check if user already applied
         const existing = await pool.query("SELECT id FROM vendors WHERE owner_user_id = $1", [userId]);
         if (existing.rows.length > 0) {
-            return res.status(400).json({ error: "You have already applied/registered as a vendor." });
+            return res.status(400).json({ error: "An application has already been submitted for this account." });
         }
 
         let document_url = null;
@@ -21,7 +31,9 @@ export const applyVendor = async (req, res) => {
         let image_url = null;
 
         // Handle file uploads (expecting 'document' and optionally 'image')
-        if (req.files) {
+        if (!req.files || !req.files.find(f => f.fieldname === 'document')) {
+            return res.status(400).json({ error: "An official registration document is required for verification." });
+        }
             const docFile = req.files.find(f => f.fieldname === 'document');
             const imgFile = req.files.find(f => f.fieldname === 'image');
 
@@ -43,22 +55,22 @@ export const applyVendor = async (req, res) => {
                 });
                 image_url = imgUpload.secure_url;
             }
+
+            const insertQuery = `
+                INSERT INTO vendors (owner_user_id, business_name, vendor_type, district_slug, description, phone, email, pan_number, registration_number, document_url, document_public_id, image_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                RETURNING *
+            `;
+            const result = await pool.query(insertQuery, [userId, business_name, vendor_type, district_slug, description, phone, email, pan_number, registration_number, document_url, document_public_id, image_url]);
+
+            // Change user role? Optional for now, since verification is pending.
+            res.status(201).json({ message: "Vendor application submitted successfully.", vendor: result.rows[0] });
+        } catch (err) {
+            console.error("applyVendor error:", err);
+            res.status(500).json({ error: err.message || "Failed to submit vendor application" });
         }
+    };
 
-        const insertQuery = `
-            INSERT INTO vendors (owner_user_id, business_name, vendor_type, district_slug, description, phone, email, pan_number, registration_number, document_url, document_public_id, image_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            RETURNING *
-        `;
-        const result = await pool.query(insertQuery, [userId, business_name, vendor_type, district_slug, description, phone, email, pan_number, registration_number, document_url, document_public_id, image_url]);
-
-        // Change user role? Optional for now, since verification is pending.
-        res.status(201).json({ message: "Vendor application submitted successfully.", vendor: result.rows[0] });
-    } catch (err) {
-        console.error("applyVendor error:", err);
-        res.status(500).json({ error: err.message || "Failed to submit vendor application" });
-    }
-};
 
 export const getMyVendorProfile = async (req, res) => {
     try {
@@ -81,7 +93,7 @@ export const getMyVendorProfile = async (req, res) => {
 export const addListing = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { title, listing_type, district_slug, destination_id, trek_id, description, price } = req.body;
+        const { title, listing_type, district_slug, destination_id, trek_id, description, price, rating, amenities } = req.body;
 
         // Check verification
         const vendorRes = await pool.query("SELECT id, is_verified FROM vendors WHERE owner_user_id = $1", [userId]);
@@ -105,12 +117,23 @@ export const addListing = async (req, res) => {
         }
 
         const insertQuery = `
-            INSERT INTO vendor_listings (vendor_id, title, listing_type, district_slug, destination_id, trek_id, description, price, image_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            INSERT INTO vendor_listings (vendor_id, title, listing_type, district_slug, destination_id, trek_id, description, price, image_url, rating, amenities)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *
         `;
-        const result = await pool.query(insertQuery, [vendor.id, title, listing_type, district_slug || null, destination_id || null, trek_id || null, description, price, image_url]);
-
+        const result = await pool.query(insertQuery, [
+            vendor.id, 
+            title, 
+            listing_type, 
+            district_slug || null, 
+            destination_id || null, 
+            trek_id || null, 
+            description, 
+            price, 
+            image_url,
+            rating ? parseFloat(rating) : 4.5,
+            amenities ? (typeof amenities === 'string' && amenities.startsWith('[') ? amenities : (typeof amenities === 'string' ? JSON.stringify(amenities.split(',').map(s => s.trim()).filter(Boolean)) : JSON.stringify(amenities))) : '[]'
+        ]);
         res.status(201).json({ message: "Listing added.", listing: result.rows[0] });
     } catch (err) {
         console.error("addListing error:", err);
@@ -122,7 +145,7 @@ export const updateListing = async (req, res) => {
     try {
         const userId = req.user.id;
         const { id } = req.params;
-        const { title, listing_type, district_slug, destination_id, trek_id, description, price, is_active } = req.body;
+        const { title, listing_type, district_slug, destination_id, trek_id, description, price, is_active, rating, amenities } = req.body;
 
         const checkRes = await pool.query("SELECT l.id, l.vendor_id FROM vendor_listings l JOIN vendors v ON l.vendor_id = v.id WHERE l.id = $1 AND v.owner_user_id = $2", [id, userId]);
         if (checkRes.rows.length === 0) return res.status(403).json({ error: "Not allowed or not found" });
@@ -149,12 +172,26 @@ export const updateListing = async (req, res) => {
                 price = COALESCE($7, price),
                 image_url = COALESCE($8, image_url),
                 is_active = COALESCE($9, is_active),
+                rating = COALESCE($10, rating),
+                amenities = COALESCE($11, amenities),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $10
+            WHERE id = $12
             RETURNING *
         `;
-        const result = await pool.query(updateQuery, [title, listing_type, district_slug || null, destination_id ? parseInt(destination_id) : null, trek_id ? parseInt(trek_id) : null, description, price, image_url, is_active, id]);
-
+        const result = await pool.query(updateQuery, [
+            title, 
+            listing_type, 
+            district_slug || null, 
+            destination_id ? parseInt(destination_id) : null, 
+            trek_id ? parseInt(trek_id) : null, 
+            description, 
+            price, 
+            image_url, 
+            is_active,
+            rating ? parseFloat(rating) : null,
+            amenities ? (typeof amenities === 'string' && amenities.startsWith('[') ? amenities : (typeof amenities === 'string' ? JSON.stringify(amenities.split(',').map(s => s.trim()).filter(Boolean)) : JSON.stringify(amenities))) : null,
+            id
+        ]);
         res.json({ message: "Listing updated.", listing: result.rows[0] });
     } catch (err) {
         console.error("updateListing error:", err);
@@ -202,7 +239,7 @@ export const getPublicVendorsByDistrict = async (req, res) => {
             SELECT l.*, v.business_name, v.phone, v.email
             FROM vendor_listings l
             JOIN vendors v ON l.vendor_id = v.id
-            WHERE l.district_slug = $1 AND l.is_active = true AND v.is_verified = true
+            WHERE l.district_slug ILIKE $1 AND l.is_active = true AND v.is_verified = true
             ORDER BY l.created_at DESC
         `, [slug]);
         res.json({ listings: result.rows });
@@ -257,6 +294,22 @@ export const getPublicListingById = async (req, res) => {
         res.json({ listing: result.rows[0] });
     } catch (err) {
         res.status(500).json({ error: "Failed" });
+    }
+};
+
+export const getAllPublicListings = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT l.*, v.business_name, v.phone, v.email, v.district_slug as vendor_district
+            FROM vendor_listings l
+            JOIN vendors v ON l.vendor_id = v.id
+            WHERE l.is_active = true AND v.is_verified = true
+            ORDER BY l.created_at DESC
+        `);
+        res.json({ listings: result.rows });
+    } catch (err) {
+        console.error("getAllPublicListings error:", err);
+        res.status(500).json({ error: "Failed to fetch listings" });
     }
 };
 

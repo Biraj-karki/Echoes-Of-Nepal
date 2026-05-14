@@ -213,7 +213,11 @@ export const getMe = async (req, res) => {
   try {
     const userId = req.user.id;
     const result = await pool.query(
-      "SELECT id, name, email, bio, location, profile_image FROM users WHERE id = $1",
+      `SELECT u.id, u.name, u.email, u.bio, u.location, u.profile_image, 
+              v.verification_status, v.business_name
+       FROM users u 
+       LEFT JOIN vendors v ON u.id = v.owner_user_id 
+       WHERE u.id = $1`,
       [userId]
     );
 

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useAuth } from "@/app/AuthProvider";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { LogOut, User, Settings, Bookmark, BookOpen } from "lucide-react";
+import { LogOut, User, Settings, Bookmark, BookOpen, ShoppingBag } from "lucide-react";
+import SOSButton from "./SOSButton";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -46,10 +47,14 @@ export default function Navbar() {
             <div className="mx-auto max-w-7xl px-5 h-16 flex items-center justify-between">
                 {/* LOGO */}
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="h-9 w-9 rounded-xl border border-white/15 bg-white/5 grid place-items-center font-bold text-lg text-white group-hover:bg-white/10 transition-colors">
-                        E
+                    <div className="h-10 w-10 rounded-full overflow-hidden border border-white/10 group-hover:border-blue-500/50 transition-all duration-300 shadow-lg">
+                        <img 
+                            src="/logo.png" 
+                            alt="Echoes of Nepal Logo" 
+                            className="h-full w-full object-cover"
+                        />
                     </div>
-                    <span className="font-semibold tracking-tight text-white group-hover:text-amber-500 transition-colors">
+                    <span className="font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">
                         Echoes of Nepal
                     </span>
                 </Link>
@@ -58,21 +63,35 @@ export default function Navbar() {
                 <nav className="hidden md:flex items-center gap-1">
                     <NavLink href="/" label="Home" active={isActive("/")} />
                     <NavLink href="/explore" label="Explore" active={isActive("/explore")} />
-                    <NavLink href="/dashboard" label="Stories" active={isActive("/dashboard")} />
+                    <NavLink href="/explore/vendors" label="Stays" active={isActive("/explore/vendors")} />
+                    <NavLink href="/dashboard" label="Feed" active={isActive("/dashboard")} />
+                    <NavLink href="/assistant" label="AI Assistant ✨" active={isActive("/assistant")} />
                     
-                    <div className="relative group ml-1">
-                        <button className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${pathname?.startsWith("/vendor") ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white hover:bg-white/5"}`}>
-                            For Vendors
-                        </button>
-                        <div className="absolute top-full left-0 mt-2 w-48 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left transform scale-95 group-hover:scale-100 z-50">
-                            <Link href="/vendor/apply" className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors">List Your Business</Link>
-                            <Link href={user ? "/vendor/dashboard" : "/vendor/login"} className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors">Vendor Dashboard</Link>
+                    {user ? (
+                        user.verification_status === "approved" ? (
+                            <Link 
+                                href="/vendor/dashboard" 
+                                className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all shadow-lg ${pathname?.startsWith("/vendor") ? "bg-blue-600 text-white shadow-blue-600/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 hover:scale-105"}`}
+                            >
+                                Dashboard
+                            </Link>
+                        ) : null
+                    ) : (
+                        <div className="relative group ml-1">
+                            <button className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${pathname?.startsWith("/vendor") ? "text-blue-400 bg-blue-500/10" : "text-slate-400 hover:text-white hover:bg-white/5"}`}>
+                                For Vendors
+                            </button>
+                            <div className="absolute top-full left-0 mt-2 w-48 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-left transform scale-95 group-hover:scale-100 z-50">
+                                <Link href="/vendor/apply" className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors">List Your Business</Link>
+                                <Link href="/vendor/login" className="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors">Vendor Login</Link>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </nav>
 
                 {/* AUTH ACTIONS */}
                 <div className="hidden md:flex items-center gap-3">
+                    {user && <SOSButton />}
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
                             <button
@@ -83,7 +102,7 @@ export default function Navbar() {
                                 <span className="hidden lg:block text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
                                     {user.name}
                                 </span>
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-emerald-500 text-white flex items-center justify-center font-bold text-xs shadow-lg border border-white/10 overflow-hidden">
+                                <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-lg border border-white/10 overflow-hidden">
                                     {(user as any).profileImage ? (
                                         <img src={(user as any).profileImage} alt={user.name} className="h-full w-full object-cover" />
                                     ) : (
@@ -100,6 +119,7 @@ export default function Navbar() {
                                     </div>
                                     <div className="py-1 relative">
                                         <DropdownLink href="/profile" icon={<User size={16} />} label="Profile" onClick={() => setDropdownOpen(false)} />
+                                        <DropdownLink href="/my-bookings" icon={<ShoppingBag size={16} />} label="My Bookings" onClick={() => setDropdownOpen(false)} />
                                         <DropdownLink href="/profile?tab=stories" icon={<BookOpen size={16} />} label="My Stories" onClick={() => setDropdownOpen(false)} />
                                         <DropdownLink href="/profile?tab=saved" icon={<Bookmark size={16} />} label="Saved" onClick={() => setDropdownOpen(false)} />
                                         <DropdownLink href="/profile?tab=settings" icon={<Settings size={16} />} label="Settings" onClick={() => setDropdownOpen(false)} />
@@ -126,7 +146,7 @@ export default function Navbar() {
                             </Link>
                             <Link
                                 href="/login"
-                                className="text-sm font-semibold px-4 py-2 rounded-xl text-white bg-gradient-to-br from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 shadow-lg shadow-orange-500/20 transition-all"
+                                className="text-sm font-semibold px-4 py-2 rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                             >
                                 Sign Up
                             </Link>
@@ -153,42 +173,56 @@ export default function Navbar() {
                     <nav className="flex flex-col gap-2">
                         <MobileNavLink href="/" label="Home" onClick={() => setMenuOpen(false)} />
                         <MobileNavLink href="/explore" label="Explore" onClick={() => setMenuOpen(false)} />
-                        <MobileNavLink href="/dashboard" label="Stories" onClick={() => setMenuOpen(false)} />
+                        <MobileNavLink href="/dashboard" label="Feed" onClick={() => setMenuOpen(false)} />
+                        <MobileNavLink href="/assistant" label="AI Assistant ✨" onClick={() => setMenuOpen(false)} />
+                        <MobileNavLink href="/my-bookings" label="My Bookings" onClick={() => setMenuOpen(false)} />
                         
-                        <div className="py-2 border-t border-white/5 mt-2">
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">For Vendors</p>
-                            <MobileNavLink href="/vendor/apply" label="List Your Business" onClick={() => setMenuOpen(false)} />
-                            <MobileNavLink href={user ? "/vendor/dashboard" : "/vendor/login"} label="Vendor Dashboard" onClick={() => setMenuOpen(false)} />
-                        </div>
+                        {user ? (
+                            user.verification_status === "approved" ? (
+                                <div className="py-2 border-t border-white/5 mt-2">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">For Vendors</p>
+                                    <MobileNavLink href="/vendor/dashboard" label="Vendor Dashboard" onClick={() => setMenuOpen(false)} />
+                                </div>
+                            ) : null
+                        ) : (
+                            <div className="py-2 border-t border-white/5 mt-2">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">For Vendors</p>
+                                <MobileNavLink href="/vendor/apply" label="List Your Business" onClick={() => setMenuOpen(false)} />
+                                <MobileNavLink href="/vendor/login" label="Vendor Login" onClick={() => setMenuOpen(false)} />
+                            </div>
+                        )}
                     </nav>
                     <div className="pt-4 border-t border-white/10">
                         {user ? (
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-slate-300">
-                                    <User size={16} />
-                                    <span>{user.name}</span>
+                            <div className="space-y-4">
+                                <SOSButton />
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-slate-300">
+                                        <User size={16} />
+                                        <span>{user.name}</span>
+                                    </div>
+                                    <button onClick={handleLogout} className="text-xs font-semibold text-red-400">
+                                        Sign Out
+                                    </button>
                                 </div>
-                                <button onClick={handleLogout} className="text-xs font-semibold text-red-400">
-                                    Sign Out
-                                </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-4 text-center">
                                 <Link
                                     href="/login"
-                                    onClick={() => setMenuOpen(false)}
-                                    className="text-center py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-white"
-                                >
-                                    Login
-                                </Link>
-                                <Link
-                                    href="/login"
-                                    onClick={() => setMenuOpen(false)}
-                                    className="text-center py-2 rounded-lg bg-orange-600 text-sm font-medium text-white"
-                                >
-                                    Sign Up
-                                </Link>
-                            </div>
+                                        onClick={() => setMenuOpen(false)}
+                                        className="text-center py-2 rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-white"
+                                    >
+                                        Login
+                                    </Link>
+                                    <Link
+                                        href="/login"
+                                        onClick={() => setMenuOpen(false)}
+                                        className="text-center py-2 rounded-lg bg-blue-600 text-sm font-medium text-white"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </div>
                         )}
                     </div>
                 </div>

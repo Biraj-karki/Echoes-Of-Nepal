@@ -12,7 +12,8 @@ import {
     getPublicVendorsByDistrict,
     getPublicVendorsByDestination,
     getPublicVendorsByTrek,
-    getPublicListingById
+    getPublicListingById,
+    getAllPublicListings
 } from "../controllers/vendorController.js";
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.get("/district/:slug", getPublicVendorsByDistrict);
 router.get("/destination/:id", getPublicVendorsByDestination);
 router.get("/trek/:id", getPublicVendorsByTrek);
 router.get("/listing/:id", getPublicListingById);
+router.get("/all", getAllPublicListings);
 
 // Protected Routes (Vendor Application & Management)
 router.post("/apply", protect, upload.any(), applyVendor); // Can receive 'document' and 'image' files

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LayoutDashboard, Users, Images, LogOut, Shield, MapPin, MountainSnow, Map, Globe, Briefcase } from "lucide-react";
+import { LayoutDashboard, Users, Images, LogOut, Shield, MapPin, MountainSnow, Map, Globe, Briefcase, AlertTriangle } from "lucide-react";
 
 
 const API_BASE =
@@ -173,6 +173,11 @@ export default function AdminLayout({
                 icon={<Briefcase size={18} />}
                 label="Vendors"
               />
+              <NavItem
+                href="/admin/sos"
+                icon={<AlertTriangle size={18} className="text-red-500" />}
+                label="SOS Alerts"
+              />
             </div>
 
 
@@ -203,6 +208,7 @@ export default function AdminLayout({
                       : pathname?.includes("/admin/treks") ? "Treks"
                       : pathname?.includes("/admin/districts") ? "Districts"
                       : pathname?.includes("/admin/vendors") ? "Vendors"
+                      : pathname?.includes("/admin/sos") ? "Emergency SOS"
                       : "Dashboard"}
                   </div>
                 </div>

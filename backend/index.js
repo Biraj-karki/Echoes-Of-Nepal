@@ -16,6 +16,10 @@ import savedRoutes from "./routes/savedRoutes.js";
 import tourismPublicRoutes from "./routes/tourismPublicRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import otpRoutes from "./routes/otpRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
+import enhancedAiRoutes from "./routes/enhancedAiRoutes.js";
+import sosRoutes from "./routes/sosRoutes.js";
 
 const app = express();
 
@@ -40,6 +44,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Routes
+app.use("/api/sos", sosRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stories", storyRoutes);
@@ -50,6 +55,9 @@ app.use("/api/saved", savedRoutes);
 app.use("/api/tourism", tourismPublicRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/otp", otpRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/ai/v2", enhancedAiRoutes); // New enhanced AI endpoints
 
 const PORT = process.env.PORT || 5000;
 

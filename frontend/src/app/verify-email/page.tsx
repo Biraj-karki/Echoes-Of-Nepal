@@ -2,10 +2,13 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-neutral-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-white">Loading...</div>}>
       <VerifyEmailContent />
     </Suspense>
   );
@@ -44,14 +47,14 @@ function VerifyEmailContent() {
         }
 
         setStatus("success");
-        setMessage("Email verified successfully! Redirecting to login…");
+        setMessage("Email verified successfully! You can now log in.");
 
         setTimeout(() => {
           router.push("/login");
-        }, 2000);
+        }, 3000);
       } catch (err) {
         setStatus("error");
-        setMessage("Something went wrong.");
+        setMessage("Something went wrong during verification.");
       }
     };
 
@@ -59,68 +62,56 @@ function VerifyEmailContent() {
   }, [searchParams, router]);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#020617",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-        textAlign: "center",
-        color: "white",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "420px",
-          padding: "2rem",
-          background: "rgba(15,23,42,0.8)",
-          borderRadius: "16px",
-          border: "1px solid rgba(148,163,184,0.4)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] p-6">
+      <Card className="w-full max-w-md p-8 bg-slate-900/50 backdrop-blur-xl border-white/5 shadow-2xl text-center">
         {status === "loading" && (
-          <>
-            <h2 style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>
-              Verifying your email…
-            </h2>
-            <p>Please wait while we confirm your account.</p>
-          </>
+          <div className="space-y-6 py-4">
+            <div className="flex justify-center">
+              <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Verifying your email…
+              </h2>
+              <p className="text-slate-400 text-sm">Please wait while we confirm your account.</p>
+            </div>
+          </div>
         )}
 
         {status === "success" && (
-          <>
-            <h2 style={{ fontSize: "1.4rem", color: "#4ade80" }}>
-              Email Verified 🎉
-            </h2>
-            <p>{message}</p>
-          </>
+          <div className="space-y-6 py-4">
+            <div className="flex justify-center">
+              <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Email Verified 🎉
+              </h2>
+              <p className="text-emerald-400/80 text-sm font-medium">{message}</p>
+            </div>
+            <Button onClick={() => router.push("/login")} fullWidth>
+              Go to Login
+            </Button>
+          </div>
         )}
 
         {status === "error" && (
-          <>
-            <h2 style={{ fontSize: "1.4rem", color: "#f87171" }}>
-              Verification Failed ❌
-            </h2>
-            <p>{message}</p>
-            <button
-              onClick={() => router.push("/login")}
-              style={{
-                marginTop: "1rem",
-                padding: "0.5rem 1rem",
-                backgroundColor: "#fb923c",
-                borderRadius: "8px",
-                border: "none",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              Go to Login
-            </button>
-          </>
+          <div className="space-y-6 py-4">
+            <div className="flex justify-center">
+              <XCircle className="w-16 h-16 text-red-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Verification Failed ❌
+              </h2>
+              <p className="text-red-400/80 text-sm font-medium">{message}</p>
+            </div>
+            <Button onClick={() => router.push("/login")} fullWidth variant="danger">
+              Back to Login
+            </Button>
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

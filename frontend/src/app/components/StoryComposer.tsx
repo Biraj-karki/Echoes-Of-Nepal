@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 const API = "http://localhost:5000";
 const MAX_MEDIA = 6;
 
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+
 export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -13,6 +16,8 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
   //  use File[] instead of FileList
   const [files, setFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // create preview urls
   const previews = useMemo(() => {
@@ -48,25 +53,37 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
 
   const clearAll = () => setFiles([]);
 
+  const validateStory = () => {
+    if (!title.trim()) {
+      setError("A title is required for your story.");
+      return false;
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      setError("Please write a bit more in the description (at least 10 characters).");
+      return false;
+    }
+    return true;
+  };
+
   const submit = async () => {
+    setError(null);
+    setSuccess(false);
+
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please login first");
+      setError("Please log in to share your story.");
       return;
     }
-    if (!title.trim()) {
-      alert("Title is required");
-      return;
-    }
+
+    if (!validateStory()) return;
 
     setPosting(true);
     try {
       const form = new FormData();
-      form.append("title", title);
-      form.append("description", description);
-      form.append("location_tag", locationTag);
+      form.append("title", title.trim());
+      form.append("description", description.trim());
+      form.append("location_tag", locationTag.trim());
 
-      //  append files
       files.forEach((f) => form.append("media", f));
 
       const res = await fetch(`${API}/api/stories`, {
@@ -77,7 +94,7 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Failed to post story");
+        setError(data.error || "Failed to post your story. Please try again.");
         return;
       }
 
@@ -85,12 +102,14 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
       setDescription("");
       setLocationTag("");
       setFiles([]);
+      setSuccess(true);
 
-      onPosted();
-      alert("Story posted ");
+      if (onPosted) onPosted();
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(false), 5000);
     } catch (e) {
-      console.error(e);
-      alert("Something went wrong posting story");
+      setError("Network error. Could not connect to the server.");
     } finally {
       setPosting(false);
     }
@@ -202,16 +221,26 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
           </div>
         )}
 
+        {/* Feedback Area */}
+        {(error || success) && (
+          <div className="mt-4">
+            <Alert 
+              type={error ? "error" : "success"} 
+              message={error || "Your story has been posted successfully!"} 
+            />
+          </div>
+        )}
+
         {/*  Submit row */}
-        <div className="eon-upload-row">
-          <button
-            className="eon-submit2"
+        <div className="eon-upload-row mt-6">
+          <Button
+            className="eon-submit2 w-full py-4"
             onClick={submit}
-            disabled={posting || !title.trim()}
-            title={!title.trim() ? "Title is required" : ""}
+            loading={posting}
+            disabled={posting}
           >
-            {posting ? "Posting..." : "Post story"}
-          </button>
+            {posting ? "Publishing Story..." : "Publish Journey Story"}
+          </Button>
         </div>
 
         <p className="eon-hint">Max 6 files. Images + videos supported.</p>
