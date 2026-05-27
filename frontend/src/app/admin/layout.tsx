@@ -4,10 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LayoutDashboard, Users, Images, LogOut, Shield, MapPin, MountainSnow, Map, Globe, Briefcase, AlertTriangle } from "lucide-react";
-
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminLayout({
   children,

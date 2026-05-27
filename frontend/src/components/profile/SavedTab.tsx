@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { BookmarkMinus, MapPin, BookOpen, MountainSnow } from 'lucide-react';
+import { API_BASE } from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function SavedTab({ user: initialUser }: { user?: any }) {
   const [savedItems, setSavedItems] = useState<any[]>([]);

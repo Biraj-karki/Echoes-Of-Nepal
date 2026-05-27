@@ -13,10 +13,10 @@ import {
     Eye
 } from "lucide-react";
 import Link from "next/link";
+import { API_BASE } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function VendorDashboardOverview() {
     const { vendor, loading } = useVendor();

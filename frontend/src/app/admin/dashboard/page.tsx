@@ -3,9 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCcw, Users, Images } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { API_BASE } from "@/lib/api";
 
 export default function VendorApplyPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function VendorApplyPage() {
   useEffect(() => {
     const fetchDistricts = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/tourism/districts`);
+        const res = await fetch(`${API_BASE}/api/tourism/districts`);
         const data = await res.json();
         if (res.ok) setDistricts(data.districts);
       } catch (err) {
@@ -100,7 +101,7 @@ export default function VendorApplyPage() {
     if (imageFile) submitData.append("image", imageFile);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/vendors/apply`, {
+      const res = await fetch(`${API_BASE}/api/vendors/apply`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`

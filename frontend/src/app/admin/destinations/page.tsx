@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit2, Trash2, X, Upload, Star, MapPin } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminDestinations() {
     const [destinations, setDestinations] = useState<any[]>([]);

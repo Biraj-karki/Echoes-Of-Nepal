@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Navigation, BookHeart, MountainSnow } from "lucide-react";
 import { useLanguage } from "@/app/LanguageProvider";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function StatsSection() {
   const { t } = useLanguage();

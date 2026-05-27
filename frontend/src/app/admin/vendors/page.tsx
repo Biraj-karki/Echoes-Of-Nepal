@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, CheckCircle, XCircle, Eye, FileText, Briefcase, MapPin, X, AlertOctagon } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminVendors() {
     const [vendors, setVendors] = useState<any[]>([]);

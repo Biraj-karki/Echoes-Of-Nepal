@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 import { 
@@ -15,16 +15,12 @@ import {
     RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
+import { API_BASE } from "@/lib/api";
 
 export default function MyBookingsPage() {
     const router = useRouter();
     const { user, loading } = useAuth();
     
-    const API_BASE = useMemo(
-        () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000",
-        []
-    );
-
     const [bookings, setBookings] = useState<any[]>([]);
     const [fetching, setFetching] = useState(true);
 

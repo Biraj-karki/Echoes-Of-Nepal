@@ -3,8 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Loader2, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function VerifyPaymentPage() {
     const params = useParams<{ id: string }>();

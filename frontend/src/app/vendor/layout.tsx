@@ -6,8 +6,7 @@ import { useAuth } from "@/app/AuthProvider";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
 import VendorHeader from "@/components/vendor/VendorHeader";
 import { AlertTriangle, Clock, ShieldAlert, BookOpen, ExternalLink, HelpCircle } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 const VendorContext = createContext<{ vendor: any; loading: boolean }>({ vendor: null, loading: true });
 

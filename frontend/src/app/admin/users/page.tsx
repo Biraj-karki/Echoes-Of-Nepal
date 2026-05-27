@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCcw, Search, Trash2, User } from "lucide-react";
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);

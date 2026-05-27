@@ -7,8 +7,7 @@ import CalendarPicker from "./CalendarPicker";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Alert } from "./ui/Alert";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 type DistrictBase = {
     id: string | number; 

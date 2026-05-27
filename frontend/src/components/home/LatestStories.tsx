@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, User, Calendar } from "lucide-react";
 import { useLanguage } from "@/app/LanguageProvider";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 type Story = {
     id: number;

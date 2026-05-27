@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useVendor } from "../layout";
 import Link from "next/link";
+import { API_BASE } from "@/lib/api";
 import {
     CalendarCheck,
     User,
@@ -24,7 +25,6 @@ import {
 } from "lucide-react";
 import VendorCalendar from "@/components/vendor/VendorCalendar";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function VendorBookingsPage() {
     const { vendor, loading: vendorLoading } = useVendor();

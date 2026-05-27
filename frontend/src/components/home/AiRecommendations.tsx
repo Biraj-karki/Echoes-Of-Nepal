@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, Loader2, DollarSign, Navigation, RotateCcw, Compass } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 const QUICK_PROMPTS = [
     { emoji: "🏔️", label: "Everest trekking adventure" },

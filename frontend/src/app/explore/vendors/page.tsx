@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Loader2, SlidersHorizontal } from "lucide-react";
 import VendorListingCard, { VendorListing } from "@/components/vendor/VendorListingCard";
 import VendorFilterBar from "@/components/vendor/VendorFilterBar";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function ExploreStaysPage() {
     const router = useRouter();

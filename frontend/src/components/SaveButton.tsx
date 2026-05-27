@@ -3,14 +3,13 @@
 import { useState, useEffect } from "react";
 import { Bookmark } from "lucide-react";
 import { useAuth } from "@/app/AuthProvider";
+import { API_BASE } from "@/lib/api";
 
 interface SaveButtonProps {
     itemType: "destination" | "story" | "trek";
     itemId: string | number;
     className?: string;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function SaveButton({ itemType, itemId, className = "" }: SaveButtonProps) {
     const { user } = useAuth();

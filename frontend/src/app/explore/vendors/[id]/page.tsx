@@ -19,8 +19,7 @@ import {
     X
 } from "lucide-react";
 import StoryCard from "@/components/StoryCard";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 export default function VendorListingDetailPage() {
     const params = useParams<{ id: string }>();
