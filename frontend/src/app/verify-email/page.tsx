@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 export default function VerifyEmailPage() {
   return (
@@ -35,7 +36,7 @@ function VerifyEmailContent() {
     const verify = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/auth/verify-email?token=${token}`
+          `${API_BASE}/api/auth/verify-email?token=${token}`
         );
 
         const data = await res.json();

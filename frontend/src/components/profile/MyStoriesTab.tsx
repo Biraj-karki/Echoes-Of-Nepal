@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import StoryCard from '@/components/StoryCard';
+import { API_BASE } from '@/lib/api';
 
 export default function MyStoriesTab({ user }: { user?: any }) {
   const [stories, setStories] = useState<any[]>([]);
@@ -8,11 +9,14 @@ export default function MyStoriesTab({ user }: { user?: any }) {
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
   const [storyComments, setStoryComments] = useState<Record<number, any[]>>({});
   const [loadingComments, setLoadingComments] = useState<Record<number, boolean>>({});
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [deleteMsg, setDeleteMsg] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   const fetchMyStories = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/stories/me", {
+      const res = await fetch(`${API_BASE}/api/stories/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -31,7 +35,7 @@ export default function MyStoriesTab({ user }: { user?: any }) {
   const handleLike = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/stories/${id}/like`, {
+      const res = await fetch(`${API_BASE}/api/stories/${id}/like`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -45,18 +49,32 @@ export default function MyStoriesTab({ user }: { user?: any }) {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this story?")) return;
+    setDeleteError("");
+    setDeleteMsg("");
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/stories/${id}`, {
+      const res = await fetch(`${API_BASE}/api/stories/${pendingDeleteId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setStories(stories.filter(s => (s.id || s.story_id) !== id));
+        setStories(prev => prev.filter(s => (s.id || s.story_id) !== pendingDeleteId));
+        setDeleteMsg("Story deleted successfully.");
+        setPendingDeleteId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error || "Failed to delete story.");
+        setPendingDeleteId(null);
       }
     } catch (err) {
       console.error("Delete error:", err);
+      setDeleteError("Something went wrong while deleting the story.");
+      setPendingDeleteId(null);
     }
   };
 
@@ -74,7 +92,7 @@ export default function MyStoriesTab({ user }: { user?: any }) {
   const fetchComments = async (id: number) => {
     setLoadingComments(prev => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/api/stories/${id}/comments`);
+      const res = await fetch(`${API_BASE}/api/stories/${id}/comments`);
       const data = await res.json();
       setStoryComments(prev => ({ ...prev, [id]: data.comments || [] }));
     } catch (err) {
@@ -90,7 +108,7 @@ export default function MyStoriesTab({ user }: { user?: any }) {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/stories/${id}/comments`, {
+      const res = await fetch(`${API_BASE}/api/stories/${id}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -101,6 +119,7 @@ export default function MyStoriesTab({ user }: { user?: any }) {
       if (res.ok) {
         setCommentDrafts(prev => ({ ...prev, [id]: "" }));
         fetchComments(id);
+        setStories(prev => prev.map(s => (s.id || s.story_id) === id ? { ...s, comment_count: (Number(s.comment_count) || 0) + 1 } : s));
       }
     } catch (err) {
       console.error("Post comment error:", err);
@@ -127,6 +146,41 @@ export default function MyStoriesTab({ user }: { user?: any }) {
           <span className="text-blue-400 font-bold text-sm">{stories.length}</span>
         </div>
       </div>
+
+      {pendingDeleteId && (
+        <div className="rounded-[2rem] border border-red-500/20 bg-red-500/10 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-widest text-red-300">Confirm Story Deletion</p>
+            <p className="text-sm text-slate-300 mt-1">Delete this story and its uploaded media from your history?</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setPendingDeleteId(null)}
+              className="px-5 py-2.5 rounded-2xl border border-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="px-5 py-2.5 rounded-2xl bg-red-600 text-white text-xs font-black uppercase tracking-widest hover:bg-red-500 transition-all"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
+      {deleteMsg && (
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3 text-xs font-medium text-emerald-300">
+          {deleteMsg}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-medium text-red-300">
+          {deleteError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-8">
         {stories.map((story: any) => {
@@ -172,5 +226,3 @@ export default function MyStoriesTab({ user }: { user?: any }) {
     </div>
   );
 }
-
-

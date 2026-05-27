@@ -451,3 +451,40 @@ export const getTrekItinerary = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch itinerary" });
     }
 };
+
+export const saveTrekItinerary = async (req, res) => {
+    const { id } = req.params;
+    const { itinerary } = req.body;
+    
+    if (!Array.isArray(itinerary)) {
+        return res.status(400).json({ error: "Itinerary must be an array" });
+    }
+    
+    try {
+        await pool.query("BEGIN");
+        await pool.query("DELETE FROM trek_itineraries WHERE trek_id = $1", [id]);
+        
+        for (const item of itinerary) {
+            await pool.query(
+                `INSERT INTO trek_itineraries (trek_id, day_number, title, description, distance, altitude, duration) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                    id,
+                    parseInt(item.day_number || item.day || "1"),
+                    item.title || "",
+                    item.description || item.desc || "",
+                    item.distance || item.dist || "",
+                    item.altitude || item.alt || "",
+                    item.duration || item.dur || ""
+                ]
+            );
+        }
+        
+        await pool.query("COMMIT");
+        res.json({ message: "Itinerary saved successfully" });
+    } catch (err) {
+        await pool.query("ROLLBACK");
+        console.error("Save itinerary error:", err);
+        res.status(500).json({ error: "Failed to save itinerary" });
+    }
+};

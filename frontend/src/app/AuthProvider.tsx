@@ -7,11 +7,13 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { API_BASE } from "@/lib/api";
 
 type User = {
   id: number;
   name: string;
   email: string;
+  role?: string;
   bio?: string;
   location?: string;
   profile_image?: string;
@@ -46,8 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const res = await fetch(`${apiBase}/api/auth/me`, {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

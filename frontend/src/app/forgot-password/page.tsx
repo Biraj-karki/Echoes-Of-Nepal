@@ -6,20 +6,25 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { ChevronLeft } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setSubmitting(true);
+    setErrorMsg("");
+    setSuccessMsg("");
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        `${API_BASE}/api/auth/forgot-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -29,15 +34,15 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Something went wrong while sending reset email");
+        setErrorMsg(data.error || "Something went wrong while sending reset email");
         return;
       }
 
-      alert("If this email exists, a reset link has been sent.");
-      router.push("/login");
+      setSuccessMsg("If this email exists, a reset link has been sent.");
+      setEmail("");
     } catch (err) {
       console.error("Forgot password error", err);
-      alert("Something went wrong while sending reset email");
+      setErrorMsg("Something went wrong while sending reset email");
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +94,18 @@ export default function ForgotPasswordPage() {
             <h2 className="text-2xl font-bold text-white mb-2">Forgot your password?</h2>
             <p className="text-slate-400 text-sm">We&apos;ll email you a link to reset it.</p>
           </header>
+
+          {errorMsg && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium">
+              {errorMsg}
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
+              {successMsg}
+            </div>
+          )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <Input

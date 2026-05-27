@@ -14,7 +14,9 @@ import {
     Share2,
     Heart,
     Check,
-    Loader2
+    Loader2,
+    QrCode,
+    X
 } from "lucide-react";
 import StoryCard from "@/components/StoryCard";
 
@@ -28,6 +30,16 @@ export default function VendorListingDetailPage() {
     const [listing, setListing] = useState<any>(null);
     const [relatedStories, setRelatedStories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isQrOpen, setIsQrOpen] = useState(false);
+
+    // Safe, localized check-in date validation to block past bookings
+    const todayString = useMemo(() => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }, []);
 
     // Booking & Verification States
     const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -48,6 +60,13 @@ export default function VendorListingDetailPage() {
     const [otpValue, setOtpValue] = useState("");
     const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [otpStatus, setOtpStatus] = useState<{type: "error" | "success", msg: string} | null>(null);
+
+    const galleryImages = useMemo(() => {
+        if (!listing) return [];
+        if (Array.isArray(listing.image_urls) && listing.image_urls.length > 0) return listing.image_urls;
+        if (listing.image_url) return [listing.image_url];
+        return [];
+    }, [listing]);
 
     useEffect(() => {
         if (!id) return;
@@ -192,7 +211,7 @@ export default function VendorListingDetailPage() {
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100">
-            <main className="max-w-[1300px] mx-auto px-6 lg:px-12 pt-16 pb-32 animate-in fade-in duration-1000">
+            <main className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-12 pt-10 sm:pt-16 pb-24 sm:pb-32 animate-in fade-in duration-1000">
                 {/* Back Button */}
                 <button 
                     onClick={() => router.back()}
@@ -221,7 +240,10 @@ export default function VendorListingDetailPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button onClick={() => setIsQrOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-blue-500/20 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 transition-all text-xs font-black uppercase tracking-widest" title="Send to Phone / View QR">
+                            <QrCode size={16} /> Send to Phone
+                        </button>
                         <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest">
                             <Share2 size={16} /> Share
                         </button>
@@ -232,28 +254,26 @@ export default function VendorListingDetailPage() {
                 </div>
 
                 {/* Hero Gallery */}
-                <div className="grid grid-cols-4 grid-rows-2 gap-4 h-[500px] lg:h-[600px] rounded-[3rem] overflow-hidden border border-white/5 shadow-2xl mb-16 group/gallery">
-                    <div className="col-span-4 lg:col-span-2 row-span-2 relative overflow-hidden bg-slate-800">
-                        {listing.image_url ? (
-                            <img src={listing.image_url} alt={listing.title} className="w-full h-full object-cover group-hover/gallery:scale-105 transition-transform duration-1000" />
+                <div className="grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-4 h-auto lg:h-[600px] rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/5 shadow-2xl mb-12 sm:mb-16 group/gallery">
+                    <div className="col-span-1 lg:col-span-2 row-span-1 lg:row-span-2 relative overflow-hidden bg-slate-800 min-h-[280px] sm:min-h-[360px] lg:min-h-0">
+                        {galleryImages[0] ? (
+                            <img src={galleryImages[0]} alt={listing.title} className="w-full h-full object-cover group-hover/gallery:scale-105 transition-transform duration-1000" />
                         ) : (
                             <div className="w-full h-full grid place-items-center text-slate-600 font-black italic">FEATURE_IMAGE</div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        <div className="absolute left-4 bottom-4 sm:left-6 sm:bottom-6 px-4 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em]">
+                            {galleryImages.length} Image{galleryImages.length === 1 ? "" : "s"} Uploaded
+                        </div>
                     </div>
-                    {/* Mock sub-images for Airbnb vibe */}
-                    <div className="hidden lg:block col-span-1 row-span-1 bg-slate-800 border-l border-white/10 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1544735032-6a51d75a1d27?q=80&w=2070" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="hidden lg:block col-span-1 row-span-1 bg-slate-800 border-l border-white/10 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1549117136-1930263f3edb?q=80&w=2070" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="hidden lg:block col-span-1 row-span-1 bg-slate-800 border-t border-l border-white/10 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1601365005885-305149303c05?q=80&w=2069" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="hidden lg:block col-span-1 row-span-1 relative bg-slate-800 border-t border-l border-white/10 overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                    </div>
+                    {galleryImages.slice(1, 5).map((imageUrl: string, index: number) => (
+                        <div
+                            key={`${imageUrl}-${index}`}
+                            className={`hidden lg:block col-span-1 row-span-1 bg-slate-800 border-l border-white/10 overflow-hidden ${index > 2 ? "border-t" : ""}`}
+                        >
+                            <img src={imageUrl} alt={`${listing.title} ${index + 2}`} className="w-full h-full object-cover opacity-70 hover:opacity-100 transition-opacity" />
+                        </div>
+                    ))}
                 </div>
 
                 {/* Content Layout */}
@@ -346,7 +366,7 @@ export default function VendorListingDetailPage() {
 
                     {/* Booking Panel Sticky Side */}
                     <aside className="w-full lg:w-[400px] shrink-0">
-                        <div className="sticky top-32 p-10 rounded-[3rem] bg-slate-900 border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-t-white/20">
+                        <div className="lg:sticky lg:top-32 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] bg-slate-900 border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-t-white/20">
                             <div className="flex justify-between items-start mb-10">
                                 <div className="space-y-1">
                                     <span className="text-3xl font-black text-white italic">{listing.price || "Contact"}</span>
@@ -376,6 +396,7 @@ export default function VendorListingDetailPage() {
                                                 <input 
                                                     type="date" 
                                                     value={bookingForm.travel_date}
+                                                    min={todayString}
                                                     onChange={(e) => setBookingForm({...bookingForm, travel_date: e.target.value})}
                                                     className="bg-transparent text-sm font-bold text-slate-300 focus:outline-none w-full [color-scheme:dark]" 
                                                 />
@@ -513,6 +534,45 @@ export default function VendorListingDetailPage() {
                     </aside>
                 </div>
             </main>
+
+            {/* Send to Phone QR Modal */}
+            {isQrOpen && (
+                <div className="fixed inset-0 z-[120] grid place-items-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-[#0a0f1d] border border-white/10 rounded-[3rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
+                        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                            <div>
+                                <h3 className="text-lg font-black text-white italic">Send to Phone</h3>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Scan to open on your mobile</p>
+                            </div>
+                            <button onClick={() => setIsQrOpen(false)} className="p-3 hover:bg-white/10 text-slate-400 rounded-2xl transition-all"><X size={20} /></button>
+                        </div>
+                        
+                        <div className="p-8 flex flex-col items-center text-center space-y-6">
+                            <div className="bg-white p-6 rounded-[2rem] shadow-inner shadow-black/40 border border-white/20">
+                                <img 
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`} 
+                                    alt="Listing QR Code"
+                                    className="w-48 h-48 block"
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <h4 className="text-md font-black text-white italic uppercase">{listing.title}</h4>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider max-w-[240px] leading-relaxed">
+                                    Take this stay/guide listing with you on the trail! Scan to save details offline.
+                                </p>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setIsQrOpen(false)}
+                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+                            >
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

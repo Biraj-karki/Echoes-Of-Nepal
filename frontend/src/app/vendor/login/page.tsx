@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/AuthProvider"; // Use absolute alias for AuthProvider
 import { Eye, EyeOff, Mail, Lock, Briefcase } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 declare global {
   interface Window {
@@ -63,7 +64,7 @@ function VendorLoginPageContent() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/auth/google", {
+      const res = await fetch(`${API_BASE}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
@@ -119,7 +120,7 @@ function VendorLoginPageContent() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -149,7 +150,7 @@ function VendorLoginPageContent() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: regName, email: regEmail, password: regPassword }),

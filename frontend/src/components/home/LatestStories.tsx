@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, MapPin, User, Calendar } from "lucide-react";
+import { MapPin, User, Calendar } from "lucide-react";
+import { useLanguage } from "@/app/LanguageProvider";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -13,13 +14,19 @@ type Story = {
     createdAt?: string;
     created_at?: string;
     user_name?: string;
-    media?: any[];
+    media?: StoryMedia[];
     user?: {
         name: string;
     }
 };
 
+type StoryMedia = {
+    media_type?: string;
+    media_url?: string;
+};
+
 export default function LatestStories() {
+    const { t } = useLanguage();
     const [stories, setStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -64,14 +71,14 @@ export default function LatestStories() {
         <section className="py-24 bg-slate-950 border-t border-white/5 relative">
             <div className="max-w-6xl mx-auto px-6">
                 <div className="text-center mb-16">
-                    <span className="text-emerald-400 font-semibold tracking-wider text-sm uppercase mb-2 block">Community</span>
-                    <h2 className="text-3xl md:text-5xl font-black text-white">Latest Travel Stories</h2>
+                    <span className="text-emerald-400 font-semibold tracking-wider text-sm uppercase mb-2 block">{t("stories.badge")}</span>
+                    <h2 className="text-3xl md:text-5xl font-black text-white">{t("stories.title")}</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {stories.map((story) => {
                         const coverUrl = getCoverImageUrl(story);
-                        const authorName = story.user?.name || story.user_name || "Unknown Traveler";
+                        const authorName = story.user?.name || story.user_name || t("stories.unknownTraveler");
                         const date = story.createdAt || story.created_at || new Date().toISOString();
                         
                         return (
@@ -97,7 +104,7 @@ export default function LatestStories() {
                                         <div className="flex items-center justify-between">
                                             <span className="flex items-center gap-1.5 text-slate-300">
                                                 <User size={14} className="text-blue-400" /> 
-                                                By {authorName}
+                                                {t("stories.by")} {authorName}
                                             </span>
                                             <span className="flex items-center gap-1.5">
                                                 <Calendar size={14} />

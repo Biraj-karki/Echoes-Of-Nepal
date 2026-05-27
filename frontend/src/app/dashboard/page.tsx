@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("recent");
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   
   // UI states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -164,17 +165,25 @@ export default function DashboardPage() {
   };
 
   const handleDeleteStory = async (storyId: number) => {
-    if (!confirm("Delete this snapshot from history?")) return;
+    setPendingDeleteId(storyId);
+  };
+
+  const confirmDeleteStory = async () => {
+    if (!pendingDeleteId) return;
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE}/api/stories/${storyId}`, {
+      const res = await fetch(`${API_BASE}/api/stories/${pendingDeleteId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Delete failed");
-      setStories((prev) => prev.filter((s) => (s.id ?? s.story_id) !== storyId));
+      setStories((prev) => prev.filter((s) => (s.id ?? s.story_id) !== pendingDeleteId));
+      setSuccessMsg("Story deleted successfully.");
+      setTimeout(() => setSuccessMsg(null), 2500);
     } catch (e: any) {
       setErrorMsg(e.message);
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -297,6 +306,31 @@ export default function DashboardPage() {
               <Sparkles size={16} />
               {errorMsg || successMsg}
             </p>
+          </div>
+        )}
+
+        {pendingDeleteId && (
+          <div className="mb-12 p-5 rounded-2xl border border-red-500/20 bg-red-500/10 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-bold text-red-300 uppercase tracking-widest">Confirm Story Deletion</p>
+                <p className="text-sm text-slate-300 mt-1">Delete this snapshot from history and remove its uploaded media?</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPendingDeleteId(null)}
+                  className="px-5 py-2.5 rounded-2xl border border-white/10 text-slate-300 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteStory}
+                  className="px-5 py-2.5 rounded-2xl bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-500 transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

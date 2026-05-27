@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const API = "http://localhost:5000";
+import { API_BASE } from "@/lib/api";
 
 type Media = { id: number; media_url: string; media_type: "image" | "video" };
 
@@ -24,7 +23,7 @@ export default function StoryFeed({ refreshKey }: { refreshKey: number }) {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/stories`);
+      const res = await fetch(`${API_BASE}/api/stories`);
       const data = await res.json();
       setStories(data.stories || []);
     } catch (e) {
@@ -82,13 +81,13 @@ export default function StoryFeed({ refreshKey }: { refreshKey: number }) {
                         key={m.id}
                         className="eon-media"
                         controls
-                        src={`${API}${m.media_url}`}
+                        src={`${API_BASE}${m.media_url}`}
                       />
                     ) : (
                       <img
                         key={m.id}
                         className="eon-media"
-                        src={`${API}${m.media_url}`}
+                        src={`${API_BASE}${m.media_url}`}
                         alt="Story media"
                       />
                     )

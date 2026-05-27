@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { User, Lock, Bell, Palette, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/app/AuthProvider';
+import { useLanguage } from '@/app/LanguageProvider';
+import { API_BASE } from '@/lib/api';
 
 export default function SettingsTab({ user, onProfileUpdate }: { user?: any, onProfileUpdate?: () => void }) {
   const { refreshUser } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const [activeSection, setActiveSection] = useState('profile');
   
   // Form states
@@ -31,7 +34,7 @@ export default function SettingsTab({ user, onProfileUpdate }: { user?: any, onP
     setMessage(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/users/profile", {
+      const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +70,7 @@ export default function SettingsTab({ user, onProfileUpdate }: { user?: any, onP
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/users/profile/avatar", {
+      const res = await fetch(`${API_BASE}/api/users/profile/avatar`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -232,6 +235,33 @@ export default function SettingsTab({ user, onProfileUpdate }: { user?: any, onP
                 />
               </div>
 
+              <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+                <div>
+                  <h5 className="text-sm font-black uppercase tracking-[0.2em] text-slate-300">Language</h5>
+                  <p className="mt-2 text-sm text-slate-400">Choose how the main website copy appears for you.</p>
+                </div>
+                <div className="flex w-full max-w-xs items-center rounded-full bg-[#020617] p-1">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                      language === "en" ? "bg-blue-600 text-white" : "text-slate-400"
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage("ne")}
+                    className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                      language === "ne" ? "bg-blue-600 text-white" : "text-slate-400"
+                    }`}
+                  >
+                    नेपाली
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-8 flex justify-end gap-4 border-t border-white/5">
                 <button 
                   onClick={() => {
@@ -285,4 +315,3 @@ export default function SettingsTab({ user, onProfileUpdate }: { user?: any, onP
     </div>
   );
 }
-

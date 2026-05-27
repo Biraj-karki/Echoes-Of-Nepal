@@ -1,9 +1,14 @@
 "use client";
 
+"use client";
+
 import Link from "next/link";
 import { Briefcase, ArrowRight, ShieldCheck, MapPin, TrendingUp } from "lucide-react";
+import { useLanguage } from "@/app/LanguageProvider";
 
 export default function VendorCTASection() {
+    const { t } = useLanguage();
+
     return (
         <section className="relative py-24 sm:py-32 overflow-hidden border-b border-white/5">
             {/* Background Effects */}
@@ -16,24 +21,24 @@ export default function VendorCTASection() {
                     {/* Left Copy */}
                     <div className="space-y-8">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black uppercase tracking-widest">
-                            <Briefcase size={14} /> For Businesses
+                            <Briefcase size={14} /> {t("vendor.badge")}
                         </div>
                         
                         <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
-                            List Your Business on <br />
-                            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Echoes of Nepal</span>
+                            {t("vendor.titlePrefix")} <br />
+                            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">{t("vendor.titleBrand")}</span>
                         </h2>
                         
                         <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
-                            Own a hotel, homestay, guide service, trekking agency, transport service, or local tourism business? Join Echoes of Nepal as a verified vendor and connect with travelers exploring the Himalayas across 77 districts.
+                            {t("vendor.subtitle")}
                         </p>
                         
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
                             <Link href="/vendor/apply" className="px-8 py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black uppercase tracking-widest text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 group">
-                                Apply Now <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                {t("vendor.applyNow")} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link href="/vendor/login" className="px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black uppercase tracking-widest text-sm transition-all flex items-center justify-center">
-                                Vendor Login
+                                {t("vendor.vendorLogin")}
                             </Link>
                         </div>
                     </div>
@@ -48,8 +53,8 @@ export default function VendorCTASection() {
                                     <ShieldCheck size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-bold text-lg">Verified Partner Status</h4>
-                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">Gain trust instantly. Our admin verification ensures that travelers know your business is legitimate and highly rated.</p>
+                                    <h4 className="text-white font-bold text-lg">{t("vendor.feature1Title")}</h4>
+                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">{t("vendor.feature1Body")}</p>
                                 </div>
                             </div>
                             
@@ -58,8 +63,8 @@ export default function VendorCTASection() {
                                     <MapPin size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-bold text-lg">District & Trek Targeting</h4>
-                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">Pinpoint your services directly to the districts, destinations, and trekking routes that travelers are actively searching for.</p>
+                                    <h4 className="text-white font-bold text-lg">{t("vendor.feature2Title")}</h4>
+                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">{t("vendor.feature2Body")}</p>
                                 </div>
                             </div>
 
@@ -68,8 +73,8 @@ export default function VendorCTASection() {
                                     <TrendingUp size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-bold text-lg">Direct Booking Requests</h4>
-                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">Manage your capacity. Receive inquiries directly to your Vendor Dashboard and confirm bookings on your own terms.</p>
+                                    <h4 className="text-white font-bold text-lg">{t("vendor.feature3Title")}</h4>
+                                    <p className="text-slate-400 text-sm mt-1 leading-relaxed">{t("vendor.feature3Body")}</p>
                                 </div>
                             </div>
                         </div>

@@ -17,7 +17,8 @@ import {
     getAllTreks,
     addTrek,
     updateTrek,
-    deleteTrek
+    deleteTrek,
+    saveTrekItinerary
 } from "../controllers/tourismController.js";
 
 const router = express.Router();
@@ -42,6 +43,7 @@ router.get("/treks", adminProtect, getAllTreks);
 router.post("/treks", adminProtect, upload.single("image"), addTrek);
 router.put("/treks/:id", adminProtect, upload.single("image"), updateTrek);
 router.delete("/treks/:id", adminProtect, deleteTrek);
+router.put("/treks/:id/itinerary", adminProtect, saveTrekItinerary);
 
 // Vendor Management
 import { getAllVendors, approveVendor, rejectVendor } from "../controllers/vendorController.js";

@@ -86,10 +86,6 @@ export default function AdminLoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        <div className="mt-4 text-xs text-slate-400">
-          Endpoint used: <span className="text-slate-200 font-semibold">{API_BASE}/api/admin/login</span>
-        </div>
       </div>
     </div>
   );

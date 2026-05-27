@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { API_BASE } from "@/lib/api";
 
 export default function LoginPage() {
   return (
@@ -25,6 +26,7 @@ function LoginPageContent() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [successMsg, setSuccessMsg] = useState<string>("");
 
   // login form
   const [loginEmail, setLoginEmail] = useState("");
@@ -63,7 +65,8 @@ function LoginPageContent() {
     }
   }, [searchParams, router]);
 
-  // Clear error when tab changes
+  // Clear tab-specific errors when switching views, but preserve success feedback
+  // after registration so it remains visible on the login tab.
   useEffect(() => {
     setErrorMsg("");
   }, [activeTab]);
@@ -72,13 +75,14 @@ function LoginPageContent() {
   const handleCredentialResponse = async (response: any) => {
     try {
       setErrorMsg("");
+      setSuccessMsg("");
       const idToken = response?.credential;
       if (!idToken) {
         setErrorMsg("Google login didn’t return a token. Try again.");
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/auth/google", {
+      const res = await fetch(`${API_BASE}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
@@ -131,9 +135,10 @@ function LoginPageContent() {
     e.preventDefault();
     setSubmitting(true);
     setErrorMsg("");
+    setSuccessMsg("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -160,9 +165,10 @@ function LoginPageContent() {
     e.preventDefault();
     setSubmitting(true);
     setErrorMsg("");
+    setSuccessMsg("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: regName, email: regEmail, password: regPassword }),
@@ -174,9 +180,15 @@ function LoginPageContent() {
         return;
       }
 
-      alert("Account created! Please check your email to verify your account.");
+      setSuccessMsg(
+        "Account created successfully. Please check your email to verify your account before logging in."
+      );
       setActiveTab("login");
       setLoginEmail(regEmail);
+      setRegName("");
+      setRegEmail("");
+      setRegPassword("");
+      setShowRegPassword(false);
     } catch (err) {
       console.error("Register error", err);
       setErrorMsg("Something went wrong while creating your account.");
@@ -280,6 +292,12 @@ function LoginPageContent() {
             {errorMsg && (
               <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium animate-shake">
                 {errorMsg}
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="mb-6 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
+                {successMsg}
               </div>
             )}
 

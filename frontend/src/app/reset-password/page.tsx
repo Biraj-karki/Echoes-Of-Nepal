@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { API_BASE } from "@/lib/api";
 
 export default function ResetPasswordPage() {
   return (
@@ -24,23 +25,27 @@ function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
 
     if (password !== confirm) {
-      alert("Passwords do not match");
+      setErrorMsg("Passwords do not match.");
       return;
     }
 
     if (!email || !token) {
-      alert("Invalid or missing reset link.");
+      setErrorMsg("Invalid or missing reset link.");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, token, password }),
@@ -48,15 +53,20 @@ function ResetPasswordContent() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Could not reset password");
+        setErrorMsg(data.error || "Could not reset password");
         return;
       }
 
-      alert("Password updated! You can now log in with your new password.");
-      router.push("/login");
+      setSuccessMsg("Password updated successfully. You can now log in with your new password.");
+      setPassword("");
+      setConfirm("");
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (err) {
       console.error("Reset password error:", err);
-      alert("Something went wrong while resetting your password");
+      setErrorMsg("Something went wrong while resetting your password");
     } finally {
       setLoading(false);
     }
@@ -93,6 +103,18 @@ function ResetPasswordContent() {
             <h2 className="text-2xl font-bold text-white mb-2">Create a new password</h2>
             <p className="text-slate-400 text-sm italic">{email || "your account"}</p>
           </header>
+
+          {errorMsg && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium">
+              {errorMsg}
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
+              {successMsg}
+            </div>
+          )}
 
           <form className="space-y-6" onSubmit={handleReset}>
             <Input

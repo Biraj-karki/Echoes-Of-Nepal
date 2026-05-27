@@ -37,11 +37,11 @@ export default function VendorListingCard({
             onClick={() => onClick?.(listing)}
             onMouseEnter={() => onHover?.(listing)}
             onMouseLeave={() => onHover?.(null)}
-            className={`flex flex-col gap-4 cursor-pointer group transition-all duration-500 rounded-[2rem] p-4 
-                ${isHighlighted ? 'bg-white/10 ring-1 ring-white/20 shadow-2xl shadow-blue-500/10' : 'hover:bg-white/[0.04]'}`}
+            className={`group cursor-pointer rounded-[2rem] p-4 transition-all duration-500 hover:-translate-y-1
+                ${isHighlighted ? 'bg-white/10 ring-1 ring-white/20 shadow-2xl shadow-blue-500/10' : 'bg-white/[0.03] hover:bg-white/[0.05]'}`}
         >
             {/* Image Container */}
-            <div className="relative aspect-square rounded-[1.5rem] overflow-hidden bg-slate-800 border border-white/5">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/5 bg-slate-800">
                 {listing.image_url ? (
                     <img 
                         src={listing.image_url} 
@@ -55,25 +55,24 @@ export default function VendorListingCard({
                 )}
                 
                 {/* Heart/Save Button Overlay */}
-                <button className="absolute top-4 right-4 p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white hover:text-red-400 hover:bg-black/60 transition-all active:scale-90 z-10">
+                <button className="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2.5 text-white backdrop-blur-md transition-all active:scale-90 hover:bg-black/60 hover:text-red-400">
                     <Heart size={18} />
                 </button>
 
                 {/* Listing Type Tag */}
-                <div className="absolute top-4 left-4 px-3 py-1 bg-black/40 backdrop-blur-md rounded-xl border border-white/10">
-                    <span className="text-[9px] font-black text-white uppercase tracking-widest leading-none">
+                <div className="absolute left-4 top-4 rounded-xl border border-white/10 bg-black/40 px-3 py-1 backdrop-blur-md">
+                    <span className="text-[9px] font-black leading-none tracking-[0.18em] text-white uppercase">
                         {listing.listing_type}
                     </span>
                 </div>
             </div>
 
-            {/* Info Container */}
-            <div className="px-1 py-1 flex flex-col gap-2">
-                <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-base font-black text-white leading-tight line-clamp-1 group-hover:text-blue-400 transition-colors uppercase tracking-tight italic">
+            <div className="flex flex-col gap-2 px-1 py-2">
+                <div className="flex items-start justify-between gap-4">
+                    <h3 className="line-clamp-2 text-lg font-black leading-tight tracking-tight text-white transition-colors group-hover:text-blue-300">
                         {listing.title}
                     </h3>
-                    <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                    <div className="flex shrink-0 items-center gap-1 pt-0.5">
                         <Star size={14} className="text-blue-400 fill-current" />
                         <span className="text-[12px] font-black text-white">
                             {rating ? Number(rating).toFixed(1) : "NEW"}
@@ -83,7 +82,7 @@ export default function VendorListingCard({
 
                 <div className="flex items-center gap-1.5 text-slate-500">
                     <MapPin size={12} className="text-blue-500/60" />
-                    <span className="text-[11px] font-black uppercase tracking-widest line-clamp-1">
+                    <span className="line-clamp-1 text-[11px] font-black uppercase tracking-[0.18em]">
                         {listing.district_slug || "Across Nepal"}
                     </span>
                 </div>
@@ -91,7 +90,7 @@ export default function VendorListingCard({
                 <div className="mt-3 flex items-baseline gap-1.5">
                     <span className="text-lg font-black text-white">{listing.price || "Contact"}</span>
                     {listing.price && (
-                        <span className="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em] italic">
+                        <span className="text-[10px] font-bold italic uppercase tracking-[0.2em] text-slate-500">
                             / Journey
                         </span>
                     )}

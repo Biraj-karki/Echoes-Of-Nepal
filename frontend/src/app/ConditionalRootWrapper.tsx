@@ -4,34 +4,47 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-export default function ConditionalRootWrapper({ 
-  children
-}: { 
+export default function ConditionalRootWrapper({
+  children,
+}: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const isVendorRoute = pathname?.startsWith("/vendor");
+  const isVendorPortalRoute =
+    pathname?.startsWith("/vendor/dashboard") ||
+    pathname?.startsWith("/vendor/listings") ||
+    pathname?.startsWith("/vendor/bookings") ||
+    pathname?.startsWith("/vendor/profile");
+  const isAdminRoute = pathname?.startsWith("/admin");
+  const isAuthRoute =
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/register") ||
+    pathname?.startsWith("/forgot-password") ||
+    pathname?.startsWith("/reset-password") ||
+    pathname?.startsWith("/verify-email") ||
+    pathname?.startsWith("/vendor/login") ||
+    pathname?.startsWith("/admin/login");
+  const isAppRoute =
+    pathname?.startsWith("/explore") ||
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/assistant") ||
+    pathname?.startsWith("/profile") ||
+    pathname?.startsWith("/my-bookings") ||
+    pathname?.startsWith("/booking") ||
+    pathname?.startsWith("/sos");
+  const shouldShowNavbar = !isAdminRoute && !isVendorPortalRoute;
+  const shouldShowFooter = !isVendorRoute && !isAdminRoute && !isAuthRoute && !isAppRoute;
 
-  if (isVendorRoute) {
-    return (
-      <body className="font-sans flex flex-col min-h-screen bg-[#020617]">
-        <div className="flex-grow flex flex-col">
-          {children}
-        </div>
-      </body>
-    );
+  if (isAdminRoute) {
+    return <div className="min-h-screen bg-[#020617] text-white">{children}</div>;
   }
 
-  const noFooterRoutes = ["/assistant", "/login", "/register", "/map"];
-  const showFooter = !noFooterRoutes.some(route => pathname?.startsWith(route));
-
   return (
-    <body className="font-sans flex flex-col min-h-screen">
-      <Navbar />
-      <div className="flex-grow flex flex-col">
-        {children}
-      </div>
-      {showFooter && <Footer />}
-    </body>
+    <div className="flex min-h-screen flex-col bg-[#020617] text-white">
+      {shouldShowNavbar ? <Navbar /> : null}
+      <main className="flex-1">{children}</main>
+      {shouldShowFooter ? <Footer /> : null}
+    </div>
   );
 }

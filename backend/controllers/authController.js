@@ -128,18 +128,17 @@ export const login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // block login until email verified (only for email/password accounts)
-    // TEMPORARILY DISABLED FOR VENDOR DEVELOPMENT
-    // if (user.password_hash && user.verified === false) {
-    //   return res.status(403).json({
-    //     error: "Please verify your email before logging in.",
-    //   });
-    // }
-
     if (!user.password_hash) {
       return res
         .status(400)
         .json({ error: "This account was created with Google login" });
+    }
+
+    // Block login for email/password accounts until email verification is completed.
+    if (user.verified === false) {
+      return res.status(403).json({
+        error: "Please verify your email before logging in.",
+      });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);

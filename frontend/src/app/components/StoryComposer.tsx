@@ -1,25 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-const API = "http://localhost:5000";
-const MAX_MEDIA = 6;
-
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { API_BASE } from "@/lib/api";
+const MAX_MEDIA = 6;
 
 export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [locationTag, setLocationTag] = useState("");
-
-  //  use File[] instead of FileList
   const [files, setFiles] = useState<File[]>([]);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // create preview urls
   const previews = useMemo(() => {
     return files.map((file) => ({
       file,
@@ -30,7 +25,6 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
     }));
   }, [files]);
 
-  //  cleanup blob urls
   useEffect(() => {
     return () => {
       previews.forEach((p) => URL.revokeObjectURL(p.url));
@@ -42,8 +36,6 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
     if (!picked.length) return;
 
     setFiles((prev) => [...prev, ...picked].slice(0, MAX_MEDIA));
-
-    // allow picking the same file again
     e.target.value = "";
   };
 
@@ -59,7 +51,7 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
       return false;
     }
     if (!description.trim() || description.trim().length < 10) {
-      setError("Please write a bit more in the description (at least 10 characters).");
+      setError("Please write a bit more in the description.");
       return false;
     }
     return true;
@@ -83,10 +75,9 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
       form.append("title", title.trim());
       form.append("description", description.trim());
       form.append("location_tag", locationTag.trim());
-
       files.forEach((f) => form.append("media", f));
 
-      const res = await fetch(`${API}/api/stories`, {
+      const res = await fetch(`${API_BASE}/api/stories`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -103,12 +94,9 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
       setLocationTag("");
       setFiles([]);
       setSuccess(true);
-
-      if (onPosted) onPosted();
-      
-      // Clear success message after 5 seconds
+      onPosted?.();
       setTimeout(() => setSuccess(false), 5000);
-    } catch (e) {
+    } catch {
       setError("Network error. Could not connect to the server.");
     } finally {
       setPosting(false);
@@ -116,66 +104,58 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
   };
 
   return (
-    <section className="eon-dash-card">
+    <section className="eon-surface-strong p-6 lg:p-8">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="eon-card-title">Create a story</h2>
+        <div>
+          <div className="eon-pill mb-3">Story</div>
+          <h2 className="eon-card-title text-2xl">Share your travel story</h2>
+        </div>
 
         {files.length > 0 && (
           <button
             type="button"
             onClick={clearAll}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/15"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10"
           >
             Clear all
           </button>
         )}
       </div>
 
-      <div className="eon-form-grid">
+      <div className="mt-6 grid gap-4">
         <input
-          className="eon-input2"
+          className="eon-input px-4 py-3"
           placeholder="Story title *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         <input
-          className="eon-input2"
+          className="eon-input px-4 py-3"
           placeholder="Location tag (e.g., Mustang, Rara, Pokhara)"
           value={locationTag}
           onChange={(e) => setLocationTag(e.target.value)}
         />
 
         <textarea
-          className="eon-textarea"
+          className="eon-textarea min-h-[140px] px-4 py-3"
           placeholder="Write something about your journey..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        {/*  Upload + counter */}
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15 cursor-pointer">
-            <span>📎</span>
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10">
+            <span>Attach</span>
             <span>Choose media</span>
-            <input
-              className="hidden"
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handlePick}
-            />
+            <input className="hidden" type="file" multiple accept="image/*,video/*" onChange={handlePick} />
           </label>
 
           <div className="text-sm text-white/70">
-            Selected media{" "}
-            <span className="font-semibold text-white">
-              {files.length}/{MAX_MEDIA}
-            </span>
+            Selected media <span className="font-semibold text-white">{files.length}/{MAX_MEDIA}</span>
           </div>
         </div>
 
-        {/*  Preview grid */}
         {previews.length > 0 && (
           <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             {previews.map((p, idx) => (
@@ -185,18 +165,9 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
                 title={`${p.name} • ${p.sizeMB} MB`}
               >
                 {p.type === "image" ? (
-                  <img
-                    src={p.url}
-                    alt={p.name}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={p.url} alt={p.name} className="h-full w-full object-cover" />
                 ) : (
-                  <video
-                    src={p.url}
-                    className="h-full w-full object-cover"
-                    muted
-                    playsInline
-                  />
+                  <video src={p.url} className="h-full w-full object-cover" muted playsInline />
                 )}
 
                 <div className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
@@ -209,7 +180,7 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
                   className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/85"
                   aria-label="Remove"
                 >
-                  ✕
+                  ×
                 </button>
 
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent p-2">
@@ -221,29 +192,24 @@ export default function StoryComposer({ onPosted }: { onPosted: () => void }) {
           </div>
         )}
 
-        {/* Feedback Area */}
         {(error || success) && (
           <div className="mt-4">
-            <Alert 
-              type={error ? "error" : "success"} 
-              message={error || "Your story has been posted successfully!"} 
+            <Alert
+              type={error ? "error" : "success"}
+              message={error || "Your story has been posted successfully!"}
             />
           </div>
         )}
 
-        {/*  Submit row */}
-        <div className="eon-upload-row mt-6">
-          <Button
-            className="eon-submit2 w-full py-4"
-            onClick={submit}
-            loading={posting}
-            disabled={posting}
-          >
+        <div className="mt-4">
+          <Button className="w-full py-4" onClick={submit} loading={posting} disabled={posting}>
             {posting ? "Publishing Story..." : "Publish Journey Story"}
           </Button>
         </div>
 
-        <p className="eon-hint">Max 6 files. Images + videos supported.</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+          Max 6 files. Images and videos supported.
+        </p>
       </div>
     </section>
   );

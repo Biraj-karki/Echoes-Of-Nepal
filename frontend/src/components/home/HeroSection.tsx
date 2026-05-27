@@ -1,61 +1,84 @@
+"use client";
+
 import Link from "next/link";
-import { Map, BookOpen, ArrowRight } from "lucide-react";
+import { Map, BookOpen, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { useLanguage } from "@/app/LanguageProvider";
 
 export default function HeroSection() {
-    return (
-        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-950">
-            {/* Background elements */}
-            <div className="absolute inset-0 z-0 opacity-40">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/50 to-slate-950 z-10" />
-                <img 
-                    src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=2000" 
-                    alt="Himalayan Mountains" 
-                    className="w-full h-full object-cover"
-                />
+  const { t } = useLanguage();
+
+  return (
+    <section className="relative overflow-hidden py-24 lg:py-32">
+      <div className="absolute inset-0">
+        <img
+          src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=2000"
+          alt="Himalayan Mountains"
+          className="h-full w-full object-cover opacity-25"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/40 via-[#020617]/70 to-[#020617]" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-6">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            <div className="eon-pill mb-6">
+              <Sparkles size={14} />
+              {t("hero.badge")}
             </div>
-            
-            {/* Content */}
-            <div className="relative z-10 max-w-5xl mx-auto px-6 text-center animate-in fade-in slide-in-from-bottom-6 duration-1000">
-                <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
-                    <span className="text-sm font-semibold tracking-wider uppercase bg-gradient-to-r from-blue-300 to-emerald-300 bg-clip-text text-transparent">
-                        Welcome to
-                    </span>
-                </div>
-                
-                <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 drop-shadow-lg">
-                    Echoes of Nepal
-                </h1>
-                
-                <p className="text-lg md:text-2xl text-slate-200 mb-10 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-                    Discover destinations, travel stories, treks, and hidden gems from across Nepal.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Link 
-                        href="/explore"
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)]"
-                    >
-                        <Map size={20} />
-                        Explore Nepal Map
-                        <ArrowRight size={18} className="ml-1" />
-                    </Link>
-                    
-                    <Link 
-                        href="/dashboard"
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold px-8 py-4 rounded-full transition-all hover:scale-105"
-                    >
-                        <BookOpen size={20} />
-                        Browse Stories
-                    </Link>
-                </div>
+
+            <h1 className="eon-page-title max-w-4xl">
+              {t("hero.title")}
+            </h1>
+
+            <p className="eon-page-subtitle mt-6 max-w-2xl text-lg lg:text-xl">
+              {t("hero.subtitle")}
+            </p>
+
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/explore"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-7 py-4 text-sm font-black uppercase tracking-[0.18em] text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500"
+              >
+                <Map size={18} />
+                {t("hero.ctaExplore")}
+                <ArrowRight size={16} />
+              </Link>
+
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-7 py-4 text-sm font-black uppercase tracking-[0.18em] text-slate-100 transition-all hover:border-white/20 hover:bg-white/8"
+              >
+                <BookOpen size={18} />
+                {t("hero.ctaStories")}
+              </Link>
             </div>
-            
-            {/* Scroll indicator overlay at bottom */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 animate-bounce text-white/50">
-                <div className="w-6 h-10 border-2 border-current rounded-full flex justify-center pt-2">
-                    <div className="w-1.5 h-1.5 bg-current rounded-full" />
-                </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-slate-400">
+              <div className="inline-flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-400" />
+                {t("hero.verified")}
+              </div>
+              <div className="h-1 w-1 rounded-full bg-slate-700" />
+              <div>{t("hero.meta")}</div>
             </div>
-        </section>
-    );
+          </div>
+
+          <div className="eon-surface-strong overflow-hidden">
+            <div className="relative aspect-[4/5]">
+              <img
+                src="/hero-nepal.jpg"
+                alt="Echoes of Nepal preview"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur-md">
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">{t("hero.cardEyebrow")}</div>
+                <div className="mt-2 text-xl font-black text-white">{t("hero.cardTitle")}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

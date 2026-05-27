@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, User, Bot, Loader2, Compass, Map, Clock, Zap } from "lucide-react";
 import { useAuth } from "@/app/AuthProvider";
 import DestinationCard from "@/components/DestinationCard";
+import { API_BASE } from "@/lib/api";
 
 interface Message {
     id: string;
@@ -57,8 +58,7 @@ export default function AssistantPage() {
         setIsLoading(true);
 
         try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            const response = await fetch(`${apiBase}/api/ai/chat`, {
+            const response = await fetch(`${API_BASE}/api/ai/chat`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -102,33 +102,33 @@ export default function AssistantPage() {
     };
 
     return (
-        <main className="min-h-[calc(100vh-64px)] bg-[#020617] text-slate-200 py-10 px-4">
-            <div className="max-w-4xl mx-auto w-full flex flex-col h-[750px] bg-[#0f172a] rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+        <main className="min-h-[calc(100vh-64px)] bg-[#020617] text-slate-200 py-4 sm:py-6 lg:py-10 px-3 sm:px-4">
+            <div className="max-w-4xl mx-auto w-full flex flex-col min-h-[calc(100vh-96px)] sm:min-h-[700px] lg:h-[750px] bg-[#0f172a] rounded-[1.5rem] sm:rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
                 
                 {/* Header */}
-                <div className="p-6 border-b border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-between">
+                <div className="p-4 sm:p-6 border-b border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="h-12 w-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
                             <Sparkles className="text-white" size={24} />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-white tracking-tight">Travel Assistant</h1>
+                            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Travel Assistant</h1>
                             <p className="text-xs text-slate-400">Powered by Echoes of Nepal AI</p>
                         </div>
                     </div>
-                    <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                    <div className="hidden sm:block px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-widest">
                         Online
                     </div>
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 scrollbar-hide">
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
                             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         >
-                            <div className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                            <div className={`flex gap-2 sm:gap-3 max-w-[95%] sm:max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
                                 <div className={`h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center border ${
                                     msg.role === "user" 
                                     ? "bg-blue-600 border-white/10" 
@@ -136,7 +136,7 @@ export default function AssistantPage() {
                                 }`}>
                                     {msg.role === "user" ? <User size={14} className="text-white" /> : <Bot size={14} className="text-blue-400" />}
                                 </div>
-                                <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
+                                <div className={`p-3 sm:p-4 rounded-2xl text-sm leading-relaxed ${
                                     msg.role === "user"
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/10 rounded-tr-none"
                                     : "bg-slate-800/50 text-slate-200 border border-white/5 rounded-tl-none"
@@ -146,7 +146,7 @@ export default function AssistantPage() {
                                     {msg.destinations && msg.destinations.length > 0 && (
                                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {msg.destinations.map((dest: any) => (
-                                                <div key={dest.id} className="w-full max-w-[280px]">
+                                                <div key={dest.id} className="w-full max-w-full sm:max-w-[280px]">
                                                     <DestinationCard destination={dest} />
                                                 </div>
                                             ))}
@@ -177,7 +177,7 @@ export default function AssistantPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 bg-white/5 border-t border-white/10 space-y-4">
+                <div className="p-3 sm:p-6 bg-white/5 border-t border-white/10 space-y-4">
                     {/* Suggestion Chips */}
                     {!isLoading && messages.length < 5 && (
                         <div className="flex flex-wrap gap-2">
@@ -203,7 +203,7 @@ export default function AssistantPage() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Ask about treks, places, or plan a trip..."
-                            className="w-full bg-slate-900 border border-white/10 rounded-2xl py-4 pl-6 pr-14 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-slate-500"
+                            className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3.5 sm:py-4 pl-4 sm:pl-6 pr-14 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder:text-slate-500"
                         />
                         <button
                             type="submit"

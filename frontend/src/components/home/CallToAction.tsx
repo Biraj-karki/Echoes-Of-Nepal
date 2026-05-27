@@ -1,33 +1,45 @@
+"use client";
+
 import Link from "next/link";
-import { PenTool, ArrowRight } from "lucide-react";
+import { PenTool, ArrowRight, Sparkles } from "lucide-react";
+import { useLanguage } from "@/app/LanguageProvider";
 
 export default function CallToAction() {
-    return (
-        <section className="py-24 relative overflow-hidden bg-slate-900">
-            {/* Background elements */}
-            <div className="absolute inset-0 bg-blue-900/10 pointer-events-none" />
-            <div className="absolute -top-[300px] -right-[300px] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute -bottom-[300px] -left-[300px] w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+  const { t } = useLanguage();
 
-            <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-                <div className="w-16 h-16 mx-auto bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mb-6">
-                    <PenTool size={32} />
-                </div>
-                
-                <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Share Your Travel Story</h2>
-                
-                <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-                    Have you explored somewhere amazing in Nepal? Share your story, upload your favorite photos, and inspire other travelers.
-                </p>
-                
-                <Link 
-                    href="/dashboard"
-                    className="inline-flex items-center justify-center gap-2 bg-white text-slate-950 hover:bg-slate-200 font-bold px-8 py-4 rounded-full transition-all hover:scale-105 shadow-xl"
-                >
-                    Create Story
-                    <ArrowRight size={18} />
-                </Link>
-            </div>
-        </section>
-    );
+  return (
+    <section className="eon-section relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#020617]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-white/5" />
+
+      <div className="relative mx-auto max-w-5xl px-6 text-center">
+        <div className="eon-surface-strong px-6 py-14">
+          <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-blue-500/10 text-blue-300">
+            <PenTool size={28} />
+          </div>
+
+          <div className="eon-pill mx-auto mb-4">
+            <Sparkles size={14} />
+            {t("cta.badge")}
+          </div>
+
+          <h2 className="eon-page-title mx-auto max-w-3xl">
+            {t("cta.title")}
+          </h2>
+
+          <p className="eon-page-subtitle mx-auto mt-5 max-w-2xl text-lg">
+            {t("cta.subtitle")}
+          </p>
+
+          <Link
+            href="/dashboard"
+            className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.18em] text-slate-950 transition-all hover:bg-slate-200"
+          >
+            {t("cta.button")}
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
 }

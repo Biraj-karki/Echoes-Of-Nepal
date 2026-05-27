@@ -1,6 +1,47 @@
 import pool from "../config/db.js";
 import { uploadBufferToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 
+let vendorListingsHasImageUrlsColumn = null;
+
+const hasImageUrlsColumn = async () => {
+    if (vendorListingsHasImageUrlsColumn !== null) {
+        return vendorListingsHasImageUrlsColumn;
+    }
+
+    const result = await pool.query(`
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'vendor_listings' AND column_name = 'image_urls'
+        LIMIT 1
+    `);
+
+    vendorListingsHasImageUrlsColumn = result.rows.length > 0;
+    return vendorListingsHasImageUrlsColumn;
+};
+
+const parseJsonArray = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+};
+
+const parseAmenities = (amenities) => {
+    if (!amenities) return "[]";
+    if (typeof amenities === "string" && amenities.startsWith("[")) return amenities;
+    if (typeof amenities === "string") {
+        return JSON.stringify(amenities.split(",").map((s) => s.trim()).filter(Boolean));
+    }
+    return JSON.stringify(amenities);
+};
+
 // ==========================================
 // VENDOR APPLICATION & PROFILE
 // ==========================================
@@ -94,6 +135,7 @@ export const addListing = async (req, res) => {
     try {
         const userId = req.user.id;
         const { title, listing_type, district_slug, destination_id, trek_id, description, price, rating, amenities } = req.body;
+        const supportsImageGallery = await hasImageUrlsColumn();
 
         // Check verification
         const vendorRes = await pool.query("SELECT id, is_verified FROM vendors WHERE owner_user_id = $1", [userId]);
@@ -105,35 +147,60 @@ export const addListing = async (req, res) => {
             return res.status(403).json({ error: "Your vendor account is not verified yet. You cannot add listings." });
         }
 
-        let image_url = null;
-        if (req.files && req.files.length > 0) {
-            const imgFile = req.files[0];
+        const imageFiles = (req.files || []).filter((file) => file.fieldname === "images" || file.fieldname === "image");
+        const uploadedImageUrls = [];
+        for (const imageFile of imageFiles) {
             const imgUpload = await uploadBufferToCloudinary({
-                buffer: imgFile.buffer,
-                mimetype: imgFile.mimetype,
+                buffer: imageFile.buffer,
+                mimetype: imageFile.mimetype,
                 folder: "echoes-listings"
             });
-            image_url = imgUpload.secure_url;
+            uploadedImageUrls.push(imgUpload.secure_url);
         }
+        const image_url = uploadedImageUrls[0] || null;
 
-        const insertQuery = `
-            INSERT INTO vendor_listings (vendor_id, title, listing_type, district_slug, destination_id, trek_id, description, price, image_url, rating, amenities)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING *
-        `;
-        const result = await pool.query(insertQuery, [
-            vendor.id, 
-            title, 
-            listing_type, 
-            district_slug || null, 
-            destination_id || null, 
-            trek_id || null, 
-            description, 
-            price, 
-            image_url,
-            rating ? parseFloat(rating) : 4.5,
-            amenities ? (typeof amenities === 'string' && amenities.startsWith('[') ? amenities : (typeof amenities === 'string' ? JSON.stringify(amenities.split(',').map(s => s.trim()).filter(Boolean)) : JSON.stringify(amenities))) : '[]'
-        ]);
+        const result = supportsImageGallery
+            ? await pool.query(
+                `
+                INSERT INTO vendor_listings (vendor_id, title, listing_type, district_slug, destination_id, trek_id, description, price, image_url, image_urls, rating, amenities)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                RETURNING *
+                `,
+                [
+                    vendor.id,
+                    title,
+                    listing_type,
+                    district_slug || null,
+                    destination_id || null,
+                    trek_id || null,
+                    description,
+                    price,
+                    image_url,
+                    JSON.stringify(uploadedImageUrls),
+                    rating ? parseFloat(rating) : 4.5,
+                    parseAmenities(amenities)
+                ]
+            )
+            : await pool.query(
+                `
+                INSERT INTO vendor_listings (vendor_id, title, listing_type, district_slug, destination_id, trek_id, description, price, image_url, rating, amenities)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                RETURNING *
+                `,
+                [
+                    vendor.id,
+                    title,
+                    listing_type,
+                    district_slug || null,
+                    destination_id || null,
+                    trek_id || null,
+                    description,
+                    price,
+                    image_url,
+                    rating ? parseFloat(rating) : 4.5,
+                    parseAmenities(amenities)
+                ]
+            );
         res.status(201).json({ message: "Listing added.", listing: result.rows[0] });
     } catch (err) {
         console.error("addListing error:", err);
@@ -146,52 +213,105 @@ export const updateListing = async (req, res) => {
         const userId = req.user.id;
         const { id } = req.params;
         const { title, listing_type, district_slug, destination_id, trek_id, description, price, is_active, rating, amenities } = req.body;
+        const supportsImageGallery = await hasImageUrlsColumn();
 
         const checkRes = await pool.query("SELECT l.id, l.vendor_id FROM vendor_listings l JOIN vendors v ON l.vendor_id = v.id WHERE l.id = $1 AND v.owner_user_id = $2", [id, userId]);
         if (checkRes.rows.length === 0) return res.status(403).json({ error: "Not allowed or not found" });
 
-        let image_url = req.body.image_url; // existing
-        if (req.files && req.files.length > 0) {
-            const imgFile = req.files[0];
+        const existingListingRes = supportsImageGallery
+            ? await pool.query("SELECT image_url, image_urls FROM vendor_listings WHERE id = $1", [id])
+            : await pool.query("SELECT image_url FROM vendor_listings WHERE id = $1", [id]);
+        const existingListing = existingListingRes.rows[0] || {};
+        const incomingExistingUrls = parseJsonArray(req.body.existing_image_urls);
+        const currentImageUrls = incomingExistingUrls.length > 0
+            ? incomingExistingUrls
+            : supportsImageGallery
+                ? parseJsonArray(existingListing.image_urls)
+                : (existingListing.image_url ? [existingListing.image_url] : []);
+
+        const imageFiles = (req.files || []).filter((file) => file.fieldname === "images" || file.fieldname === "image");
+        const uploadedImageUrls = [];
+        for (const imageFile of imageFiles) {
             const imgUpload = await uploadBufferToCloudinary({
-                buffer: imgFile.buffer,
-                mimetype: imgFile.mimetype,
+                buffer: imageFile.buffer,
+                mimetype: imageFile.mimetype,
                 folder: "echoes-listings"
             });
-            image_url = imgUpload.secure_url;
+            uploadedImageUrls.push(imgUpload.secure_url);
         }
 
-        const updateQuery = `
-            UPDATE vendor_listings 
-            SET title = COALESCE($1, title),
-                listing_type = COALESCE($2, listing_type),
-                district_slug = COALESCE($3, district_slug),
-                destination_id = COALESCE($4, destination_id),
-                trek_id = COALESCE($5, trek_id),
-                description = COALESCE($6, description),
-                price = COALESCE($7, price),
-                image_url = COALESCE($8, image_url),
-                is_active = COALESCE($9, is_active),
-                rating = COALESCE($10, rating),
-                amenities = COALESCE($11, amenities),
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = $12
-            RETURNING *
-        `;
-        const result = await pool.query(updateQuery, [
-            title, 
-            listing_type, 
-            district_slug || null, 
-            destination_id ? parseInt(destination_id) : null, 
-            trek_id ? parseInt(trek_id) : null, 
-            description, 
-            price, 
-            image_url, 
-            is_active,
-            rating ? parseFloat(rating) : null,
-            amenities ? (typeof amenities === 'string' && amenities.startsWith('[') ? amenities : (typeof amenities === 'string' ? JSON.stringify(amenities.split(',').map(s => s.trim()).filter(Boolean)) : JSON.stringify(amenities))) : null,
-            id
-        ]);
+        const nextImageUrls = [...currentImageUrls, ...uploadedImageUrls];
+        const image_url = nextImageUrls[0] || existingListing.image_url || null;
+
+        const result = supportsImageGallery
+            ? await pool.query(
+                `
+                UPDATE vendor_listings 
+                SET title = COALESCE($1, title),
+                    listing_type = COALESCE($2, listing_type),
+                    district_slug = COALESCE($3, district_slug),
+                    destination_id = COALESCE($4, destination_id),
+                    trek_id = COALESCE($5, trek_id),
+                    description = COALESCE($6, description),
+                    price = COALESCE($7, price),
+                    image_url = COALESCE($8, image_url),
+                    is_active = COALESCE($9, is_active),
+                    rating = COALESCE($10, rating),
+                    amenities = COALESCE($11, amenities),
+                    image_urls = COALESCE($12, image_urls),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = $13
+                RETURNING *
+                `,
+                [
+                    title,
+                    listing_type,
+                    district_slug || null,
+                    destination_id ? parseInt(destination_id) : null,
+                    trek_id ? parseInt(trek_id) : null,
+                    description,
+                    price,
+                    image_url,
+                    is_active,
+                    rating ? parseFloat(rating) : null,
+                    amenities ? parseAmenities(amenities) : null,
+                    JSON.stringify(nextImageUrls),
+                    id
+                ]
+            )
+            : await pool.query(
+                `
+                UPDATE vendor_listings 
+                SET title = COALESCE($1, title),
+                    listing_type = COALESCE($2, listing_type),
+                    district_slug = COALESCE($3, district_slug),
+                    destination_id = COALESCE($4, destination_id),
+                    trek_id = COALESCE($5, trek_id),
+                    description = COALESCE($6, description),
+                    price = COALESCE($7, price),
+                    image_url = COALESCE($8, image_url),
+                    is_active = COALESCE($9, is_active),
+                    rating = COALESCE($10, rating),
+                    amenities = COALESCE($11, amenities),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = $12
+                RETURNING *
+                `,
+                [
+                    title,
+                    listing_type,
+                    district_slug || null,
+                    destination_id ? parseInt(destination_id) : null,
+                    trek_id ? parseInt(trek_id) : null,
+                    description,
+                    price,
+                    image_url,
+                    is_active,
+                    rating ? parseFloat(rating) : null,
+                    amenities ? parseAmenities(amenities) : null,
+                    id
+                ]
+            );
         res.json({ message: "Listing updated.", listing: result.rows[0] });
     } catch (err) {
         console.error("updateListing error:", err);

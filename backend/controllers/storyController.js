@@ -4,6 +4,7 @@ import {
   uploadBufferToCloudinary,
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
+import { createNotification } from "../utils/notificationUtils.js";
 
 /**
  * ✅ Map helper: location_tag -> {lat, lng, display_name}
@@ -123,6 +124,7 @@ export const getMyStories = async (req, res) => {
         u.profile_image as author_profile_image,
 
         (SELECT COUNT(*)::int FROM story_likes sl WHERE sl.story_id = s.id) AS like_count,
+        (SELECT COUNT(*)::int FROM story_comments sc WHERE sc.story_id = s.id) AS comment_count,
 
         COALESCE(
           json_agg(
@@ -365,6 +367,20 @@ export const toggleLike = async (req, res) => {
       [storyId, userId]
     );
 
+    const storyOwnerRes = await pool.query("SELECT user_id, title FROM stories WHERE id = $1", [storyId]);
+    if (storyOwnerRes.rows.length > 0) {
+      const storyOwnerId = storyOwnerRes.rows[0].user_id;
+      if (storyOwnerId !== userId) {
+        await createNotification({
+          userId: storyOwnerId,
+          type: "like",
+          title: "New Like",
+          message: `${req.user?.name || 'Someone'} liked your story "${storyOwnerRes.rows[0].title}".`,
+          link: `/profile?tab=stories` 
+        });
+      }
+    }
+
     res.json({ liked: true });
   } catch (err) {
     console.error("toggleLike error:", err.message);
@@ -418,6 +434,20 @@ export const addComment = async (req, res) => {
       `,
       [storyId, userId, text.trim()]
     );
+
+    const storyOwnerRes = await pool.query("SELECT user_id, title FROM stories WHERE id = $1", [storyId]);
+    if (storyOwnerRes.rows.length > 0) {
+      const storyOwnerId = storyOwnerRes.rows[0].user_id;
+      if (storyOwnerId !== userId) {
+        await createNotification({
+          userId: storyOwnerId,
+          type: "comment",
+          title: "New Comment",
+          message: `${req.user?.name || 'Someone'} commented on your story "${storyOwnerRes.rows[0].title}".`,
+          link: `/profile?tab=stories` 
+        });
+      }
+    }
 
     res.status(201).json({ comment: inserted.rows[0] });
   } catch (err) {

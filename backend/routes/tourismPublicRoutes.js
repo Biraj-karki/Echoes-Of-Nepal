@@ -1,5 +1,5 @@
 import express from "express";
-import { getPublicTourismData } from "../controllers/publicTourismController.js";
+import { getPublicTourismData, getStats } from "../controllers/publicTourismController.js";
 import { 
     getAllDestinations, 
     getAllTreks, 
@@ -11,6 +11,7 @@ import {
 
 const router = express.Router();
 
+router.get("/stats", getStats);
 router.get("/districts", getPublicTourismData);
 router.get("/destinations", getAllDestinations);
 router.get("/destinations/:id", getDestinationById);

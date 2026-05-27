@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Edit2, Trash2, X, Upload, MountainSnow, Clock, MapPin } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, Upload, MountainSnow, Clock, MapPin, Calendar } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -29,6 +29,13 @@ export default function AdminTreks() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
 
+    // Itinerary States
+    const [selectedTrekForItinerary, setSelectedTrekForItinerary] = useState<any | null>(null);
+    const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
+    const [itineraryDays, setItineraryDays] = useState<any[]>([]);
+    const [loadingItinerary, setLoadingItinerary] = useState(false);
+    const [savingItinerary, setSavingItinerary] = useState(false);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -49,6 +56,85 @@ export default function AdminTreks() {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const openItineraryModal = async (trek: any) => {
+        setSelectedTrekForItinerary(trek);
+        setIsItineraryModalOpen(true);
+        setLoadingItinerary(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/tourism/treks/${trek.id}/itinerary`);
+            if (res.ok) {
+                const data = await res.json();
+                setItineraryDays(data.itinerary || []);
+            } else {
+                setItineraryDays([]);
+            }
+        } catch (e) {
+            console.error(e);
+            setItineraryDays([]);
+        } finally {
+            setLoadingItinerary(false);
+        }
+    };
+
+    const handleAddItineraryDay = () => {
+        const nextDay = itineraryDays.length + 1;
+        setItineraryDays([
+            ...itineraryDays,
+            {
+                day_number: nextDay,
+                title: "",
+                description: "",
+                distance: "",
+                altitude: "",
+                duration: ""
+            }
+        ]);
+    };
+
+    const handleRemoveItineraryDay = (index: number) => {
+        const updated = itineraryDays.filter((_, i) => i !== index).map((day, i) => ({
+            ...day,
+            day_number: i + 1
+        }));
+        setItineraryDays(updated);
+    };
+
+    const handleItineraryDayChange = (index: number, field: string, value: any) => {
+        const updated = [...itineraryDays];
+        updated[index] = { ...updated[index], [field]: value };
+        setItineraryDays(updated);
+    };
+
+    const handleSaveItinerary = async () => {
+        if (!selectedTrekForItinerary) return;
+        setSavingItinerary(true);
+        try {
+            const token = localStorage.getItem("admin_token");
+            const res = await fetch(`${API_BASE}/api/admin/treks/${selectedTrekForItinerary.id}/itinerary`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ itinerary: itineraryDays })
+            });
+
+            if (res.ok) {
+                setIsItineraryModalOpen(false);
+                setSelectedTrekForItinerary(null);
+                alert("Itinerary updated successfully!");
+            } else {
+                const err = await res.json();
+                alert(err.error || "Failed to save itinerary");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error.");
+        } finally {
+            setSavingItinerary(false);
         }
     };
 
@@ -204,6 +290,13 @@ export default function AdminTreks() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
+                                            <button 
+                                                onClick={() => openItineraryModal(trek)}
+                                                className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-sky-400 hover:border-sky-500/30 transition-all"
+                                                title="Manage Itinerary"
+                                            >
+                                                <Calendar size={16} />
+                                            </button>
                                             <button 
                                                 onClick={() => {
                                                     setEditingId(trek.id);
@@ -396,6 +489,116 @@ export default function AdminTreks() {
                                 {saving ? "Processing..." : editingId ? "Save Changes" : "Create Trek"}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Itinerary Modal */}
+            {isItineraryModalOpen && selectedTrekForItinerary && (
+                <div className="fixed inset-0 z-[100] grid place-items-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-[#0f172a] border border-white/10 rounded-[2.5rem] w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                            <div>
+                                <h3 className="text-2xl font-black text-white">Manage Itinerary</h3>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{selectedTrekForItinerary.name}</p>
+                            </div>
+                            <button onClick={() => { setIsItineraryModalOpen(false); setSelectedTrekForItinerary(null); }} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400"><X size={20} /></button>
+                        </div>
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            {loadingItinerary ? (
+                                <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                    <div className="animate-spin text-emerald-500 rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                                    <p className="text-xs text-slate-500 font-black uppercase tracking-widest">Loading itinerary days...</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        {itineraryDays.length === 0 ? (
+                                            <div className="py-12 text-center text-slate-500 bg-white/[0.01] rounded-2xl border border-dashed border-white/5">
+                                                No days added to this itinerary yet. Click "Add Day" below to start.
+                                            </div>
+                                        ) : (
+                                            itineraryDays.map((day, idx) => (
+                                                <div key={idx} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4 relative group hover:border-white/10 transition-colors">
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase px-3 py-1 rounded-lg">Day {day.day_number || idx + 1}</span>
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Day Title (e.g. Kathmandu to Syabrubesi)" 
+                                                                className="bg-transparent text-white font-bold border-b border-transparent hover:border-white/10 focus:border-emerald-500/50 focus:outline-none px-1 py-0.5 text-sm w-[250px] transition-colors"
+                                                                value={day.title || ""}
+                                                                onChange={(e) => handleItineraryDayChange(idx, "title", e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Distance (e.g. 12km)" 
+                                                                className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-slate-300 w-28 focus:outline-none focus:border-emerald-500/30"
+                                                                value={day.distance || day.dist || ""}
+                                                                onChange={(e) => handleItineraryDayChange(idx, "distance", e.target.value)}
+                                                            />
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Altitude (e.g. 3,440m)" 
+                                                                className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-slate-300 w-28 focus:outline-none focus:border-emerald-500/30"
+                                                                value={day.altitude || day.alt || ""}
+                                                                onChange={(e) => handleItineraryDayChange(idx, "altitude", e.target.value)}
+                                                            />
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Duration (e.g. 5hrs)" 
+                                                                className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-slate-300 w-28 focus:outline-none focus:border-emerald-500/30"
+                                                                value={day.duration || day.dur || ""}
+                                                                onChange={(e) => handleItineraryDayChange(idx, "duration", e.target.value)}
+                                                            />
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => handleRemoveItineraryDay(idx)}
+                                                                className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all ml-2"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <textarea 
+                                                        placeholder="Describe the day's trekking path, landscapes, and landmarks..." 
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500/50 h-16 resize-none"
+                                                        value={day.description || day.desc || ""}
+                                                        onChange={(e) => handleItineraryDayChange(idx, "description", e.target.value)}
+                                                    />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={handleAddItineraryDay}
+                                        className="w-full py-3 bg-white/5 border border-dashed border-white/10 hover:border-emerald-500/30 hover:bg-white/[0.08] text-slate-300 hover:text-emerald-400 rounded-2xl text-xs font-bold transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                                    >
+                                        <Plus size={16} /> Add Next Day
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-8 border-t border-white/10 bg-white/[0.01] flex items-center justify-between">
+                            <button 
+                                type="button"
+                                onClick={() => { setIsItineraryModalOpen(false); setSelectedTrekForItinerary(null); }}
+                                className="border border-white/10 hover:bg-white/5 px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all uppercase tracking-wider"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={handleSaveItinerary}
+                                disabled={savingItinerary || loadingItinerary}
+                                className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-wider disabled:opacity-50"
+                            >
+                                {savingItinerary ? "Saving..." : "Save Itinerary"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

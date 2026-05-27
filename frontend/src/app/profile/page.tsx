@@ -8,6 +8,7 @@ import MessagesTab from '@/components/profile/MessagesTab';
 import SavedTab from '@/components/profile/SavedTab';
 import RecentActivityTab from '@/components/profile/RecentActivityTab';
 import SettingsTab from '@/components/profile/SettingsTab';
+import { API_BASE } from '@/lib/api';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -22,7 +23,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/users/profile", {
+      const res = await fetch(`${API_BASE}/api/users/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -130,4 +131,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

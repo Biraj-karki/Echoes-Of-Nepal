@@ -1,7 +1,8 @@
 "use client";
 
 import { useAuth } from "@/app/AuthProvider";
-import { User, Bell, Search, MapPin, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { Search, MapPin, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 
 interface VendorHeaderProps {
     vendor: any;
@@ -59,10 +60,9 @@ export default function VendorHeader({ vendor }: VendorHeaderProps) {
 
                 <div className="w-[1px] h-8 bg-white/10 mx-2 hidden md:block"></div>
 
-                <button className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/10">
-                    <Bell size={18} />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#020617]"></span>
-                </button>
+                <div className="rounded-xl bg-white/5 border border-white/10 px-0.5">
+                    <NotificationBell />
+                </div>
 
                 <div className="flex items-center gap-3 pl-4 border-l border-white/10 ml-2">
                     <div className="text-right hidden sm:block">

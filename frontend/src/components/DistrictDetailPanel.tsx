@@ -11,13 +11,13 @@ import { Alert } from "./ui/Alert";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 type DistrictBase = {
-    id: string; 
+    id: string | number; 
     slug?: string;
     name: string;
-    description: string;
-    destinations: any[];
-    stories: any[];
-    treks: any[];
+    description?: string;
+    destinations?: any[];
+    stories?: any[];
+    treks?: any[];
 };
 
 interface DistrictDetailPanelProps {

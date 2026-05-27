@@ -27,11 +27,29 @@ type Story = {
     user?: { name?: string };
 };
 
+type District = {
+    id: string | number;
+    slug?: string;
+    name: string;
+    description?: string;
+    destinations?: Record<string, unknown>[];
+    treks?: Record<string, unknown>[];
+    stories?: Record<string, unknown>[];
+};
+
+const normalizeDistrictKey = (value?: string | number | null) =>
+    String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s*\(.*?\)\s*/g, "")
+        .replace(/[^a-z0-9]+/g, "");
+
 
 export default function ExplorePage() {
     const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
+    const [selectedDistrictName, setSelectedDistrictName] = useState<string | null>(null);
     const [realStories, setRealStories] = useState<Story[]>([]);
-    const [districts, setDistricts] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<District[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -64,16 +82,20 @@ export default function ExplorePage() {
 
     const handleSelectDistrict = (id: string, name: string) => {
         setSelectedDistrictId(id);
+        setSelectedDistrictName(name);
     };
 
     const handleClosePanel = () => {
         setSelectedDistrictId(null);
+        setSelectedDistrictName(null);
     };
+
+    const selectedDistrictKey = normalizeDistrictKey(selectedDistrictId);
 
     // Filter real stories for the selected district
     const districtStories = selectedDistrictId 
         ? realStories
-            .filter(s => s.location_tag?.toLowerCase() === selectedDistrictId.toLowerCase())
+            .filter((story) => normalizeDistrictKey(story.location_tag) === selectedDistrictKey)
             .map(s => ({
                 id: s.id,
                 title: s.title,
@@ -83,8 +105,15 @@ export default function ExplorePage() {
             }))
         : [];
 
-    const activeDistrictData = districts.find((d) => d.id === selectedDistrictId);
-    
+    const activeDistrictData = districts.find((district) => {
+        const districtKeys = [
+            normalizeDistrictKey(district.id),
+            normalizeDistrictKey(district.slug),
+            normalizeDistrictKey(district.name),
+        ];
+        return districtKeys.includes(selectedDistrictKey);
+    });
+
     const activeDistrict = selectedDistrictId && activeDistrictData
         ? {
             ...activeDistrictData,
@@ -92,7 +121,7 @@ export default function ExplorePage() {
         } 
         : selectedDistrictId ? {
             id: selectedDistrictId,
-            name: selectedDistrictId.replace(/^\w/, c => c.toUpperCase()),
+            name: selectedDistrictName || selectedDistrictId.replace(/^\w/, c => c.toUpperCase()),
             description: `Explore the local culture, mountains, and pristine landscapes of the beautiful ${selectedDistrictId.toLowerCase()} region.`,
             destinations: [],
             treks: [],

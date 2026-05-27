@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -27,6 +28,7 @@ export default function VendorDashboardOverview() {
         totalRevenue: 0
     });
     const [recentBookings, setRecentBookings] = useState<any[]>([]);
+    const [chartData, setChartData] = useState<any[]>([]);
 
     useEffect(() => {
         if (!vendor) return;
@@ -47,6 +49,30 @@ export default function VendorDashboardOverview() {
                 
                 const listings = listingsData.listings || [];
                 const bookings = bookingsData.bookings || [];
+
+                // Generate chart data by date
+                const dateMap: Record<string, { date: string; bookings: number; revenue: number }> = {};
+                
+                const processDate = (isoString: string) => {
+                    if (!isoString) return null;
+                    const d = new Date(isoString);
+                    if (isNaN(d.getTime())) return null;
+                    return d.toISOString().split('T')[0];
+                };
+
+                bookings.forEach((b: any) => {
+                    const d = processDate(b.created_at || b.travel_date);
+                    if (d) {
+                        if (!dateMap[d]) dateMap[d] = { date: d, bookings: 0, revenue: 0 };
+                        dateMap[d].bookings++;
+                        if (b.payment_status === 'paid') {
+                            dateMap[d].revenue += parseFloat(b.amount) || 0;
+                        }
+                    }
+                });
+
+                const sortedData = Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date));
+                setChartData(sortedData.slice(-30));
 
                 const revenue = bookings
                     .filter((b: any) => b.payment_status === 'paid')
@@ -99,6 +125,37 @@ export default function VendorDashboardOverview() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            {/* Chart Section */}
+            <div className="bg-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 h-96 flex flex-col">
+                <h3 className="text-xl font-black text-white tracking-tight mb-6">Revenue & Booking Trends (Last 30 Days)</h3>
+                <div className="flex-grow">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="date" stroke="rgba(255,255,255,0.4)" tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
+                            <YAxis yAxisId="left" stroke="rgba(255,255,255,0.4)" tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
+                            <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.4)" tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                                itemStyle={{ color: '#fff' }}
+                            />
+                            <Area yAxisId="left" type="monotone" dataKey="revenue" name="Revenue (NPR)" stroke="#f97316" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                            <Area yAxisId="right" type="monotone" dataKey="bookings" name="Bookings" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorBookings)" />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

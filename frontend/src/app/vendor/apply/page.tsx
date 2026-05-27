@@ -302,10 +302,12 @@ export default function VendorApplyPage() {
              <Button 
                 type="submit" 
                 loading={loading}
-                className="bg-white text-black hover:bg-slate-200 px-8 py-7 rounded-xl font-black uppercase tracking-widest text-xs transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-[1.02] shadow-xl hover:shadow-white/20"
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-sky-500 to-emerald-500 text-white hover:from-blue-500 hover:via-sky-400 hover:to-emerald-400 px-8 py-7 rounded-2xl font-black uppercase tracking-[0.22em] text-xs transition-all duration-300 flex items-center gap-3 disabled:opacity-50 hover:scale-[1.02] shadow-[0_18px_50px_rgba(14,165,233,0.22)] hover:shadow-[0_22px_60px_rgba(16,185,129,0.28)] border border-white/10"
               >
+                <span className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.22)_45%,transparent_70%)] translate-x-[-140%] group-hover:translate-x-[140%] transition-transform duration-1000 pointer-events-none"></span>
+                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.06] transition-colors pointer-events-none"></span>
                 {loading ? "Submitting Application..." : "Submit Application"}
-                {!loading && <ArrowRight size={18} />}
+                {!loading && <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />}
               </Button>
           </div>
         </form>

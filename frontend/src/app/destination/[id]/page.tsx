@@ -18,6 +18,16 @@ import { Button } from "@/components/ui/Button";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+const getFirstImage = (story: any) => {
+    if (!Array.isArray(story?.media)) return null;
+
+    return story.media.find((item: any) => {
+        const type = String(item?.media_type || "").toLowerCase();
+        const url = String(item?.media_url || "");
+        return type !== "video" && !/\.(mp4|mov|webm)$/i.test(url);
+    }) || null;
+};
+
 export default function DestinationDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [destination, setDestination] = useState<any>(null);
@@ -101,7 +111,7 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
         <div className="min-h-screen bg-[#020617] text-slate-200">
             
             {/* Hero Section */}
-            <div className="relative h-[75vh] w-full overflow-hidden">
+            <div className="relative min-h-[560px] h-[72vh] sm:h-[75vh] w-full overflow-hidden">
                 <img 
                     src={destination.image} 
                     alt={destination.name} 
@@ -109,8 +119,8 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/40 to-transparent" />
                 
-                <div className="absolute inset-0 flex flex-col justify-end px-6 pb-12 lg:px-20 lg:pb-20">
-                    <Link href="/explore" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-widest group">
+                <div className="absolute inset-0 flex flex-col justify-end px-4 pb-8 sm:px-6 sm:pb-12 lg:px-20 lg:pb-20">
+                    <Link href="/explore" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-[10px] sm:mb-8 sm:text-xs font-bold uppercase tracking-widest group">
                         <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to Explore
                     </Link>
                     
@@ -119,10 +129,10 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
                             <div className="inline-flex px-3 py-1 rounded bg-blue-500/20 border border-blue-500/30 text-[10px] font-black tracking-widest text-blue-400 uppercase mb-4">
                                 {destination.category}
                             </div>
-                            <h1 className="text-5xl lg:text-8xl font-black text-white leading-none mb-6 italic tracking-tight uppercase">
+                            <h1 className="text-4xl sm:text-5xl lg:text-8xl font-black text-white leading-[0.95] mb-5 sm:mb-6 italic tracking-tight uppercase break-words">
                                 {destination.name}
                             </h1>
-                            <div className="flex items-center gap-8 text-xs font-black uppercase tracking-[0.2em] text-slate-300">
+                            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] text-slate-300">
                                 <span className="flex items-center gap-2.5"><MapPin size={18} className="text-blue-500" /> {destination.district_name}</span>
                                 <span className="flex items-center gap-2.5"><Star size={18} className="text-yellow-400 fill-yellow-400" /> {destination.rating} Rating</span>
                             </div>
@@ -132,21 +142,21 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
             </div>
 
             {/* Content Grid */}
-            <main className="max-w-7xl mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-3 gap-20">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-20">
                 
                 {/* Left Column: Details */}
-                <div className="lg:col-span-2 space-y-24">
+                <div className="lg:col-span-2 space-y-16 sm:space-y-24">
                     
                     {/* About Section */}
                     <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-8">Discovery & Overview</h2>
-                        <p className="text-2xl text-slate-300 leading-relaxed font-medium mb-16">
+                        <p className="text-lg sm:text-2xl text-slate-300 leading-relaxed font-medium mb-10 sm:mb-16">
                             {destination.description}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             {/* Highlights */}
-                            <div className="p-10 bg-slate-900/40 border border-white/5 rounded-[2.5rem] relative overflow-hidden group">
+                            <div className="p-6 sm:p-10 bg-slate-900/40 border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] rounded-full group-hover:bg-blue-500/20 transition-all" />
                                 <h3 className="flex items-center gap-3 text-sm font-black text-white uppercase tracking-widest mb-8 border-b border-white/5 pb-4">
                                     <Mountain size={20} className="text-emerald-400" /> Main Highlights
@@ -161,7 +171,7 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
                             </div>
 
                             {/* Best Season */}
-                            <div className="p-10 bg-slate-900/40 border border-white/5 rounded-[2.5rem]">
+                            <div className="p-6 sm:p-10 bg-slate-900/40 border border-white/5 rounded-[2rem] sm:rounded-[2.5rem]">
                                 <h3 className="flex items-center gap-3 text-sm font-black text-white uppercase tracking-widest mb-8 border-b border-white/5 pb-4">
                                     <Calendar size={20} className="text-blue-400" /> Optimal Window
                                 </h3>
@@ -193,7 +203,7 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
                     </section>
 
                     {/* Rich Info: Tips & Travel */}
-                    <section className="grid grid-cols-1 md:grid-cols-2 gap-16">
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
                         <div>
                             <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-8">Traveler Guidelines</h2>
                             <div className="space-y-6">
@@ -232,17 +242,26 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
 
                     {/* Stories Section */}
                     <section>
-                        <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-6">
+                        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-12 border-b border-white/5 pb-6">
                             <h2 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em]">Echoes from Travelers</h2>
                             <Link href="/echoes" className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest border-b border-transparent hover:border-white/20 transition-all">Explore Entire Feed</Link>
                         </div>
                         {stories.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {stories.map((story) => (
-                                    <div key={story.id} className="p-8 bg-slate-900/40 border border-white/5 rounded-[2rem] hover:bg-slate-800/60 hover:border-amber-500/30 transition-all group cursor-pointer shadow-sm relative overflow-hidden">
+                                    <div key={story.id} className="p-5 sm:p-8 bg-slate-900/40 border border-white/5 rounded-[1.75rem] sm:rounded-[2rem] hover:bg-slate-800/60 hover:border-amber-500/30 transition-all group cursor-pointer shadow-sm relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-[40px] rounded-full" />
+                                        {getFirstImage(story)?.media_url && (
+                                            <div className="mb-6 overflow-hidden rounded-[1.5rem] border border-white/5 bg-black/30">
+                                                <img
+                                                    src={getFirstImage(story).media_url}
+                                                    alt={story.title}
+                                                    className="h-48 sm:h-56 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+                                            </div>
+                                        )}
                                         <h4 className="font-black text-white group-hover:text-amber-400 transition-colors text-xl leading-tight mb-4 italic">"{story.title}"</h4>
-                                        <div className="flex items-center gap-3 text-[10px] text-slate-500 font-black uppercase tracking-widest mb-6">
+                                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 font-black uppercase tracking-widest mb-6">
                                             <div className="w-8 h-8 rounded-full bg-slate-800 overflow-hidden border border-white/10">
                                                 {story.author_profile_image && <img src={story.author_profile_image} className="w-full h-full object-cover" />}
                                             </div>
@@ -269,7 +288,7 @@ export default function DestinationDetailPage({ params }: { params: Promise<{ id
                 <div className="space-y-8">
                     
                     {/* Verified Services Section */}
-                    <div className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl sticky top-28">
+                    <div className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl lg:sticky lg:top-28">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                                 <Briefcase size={20} />

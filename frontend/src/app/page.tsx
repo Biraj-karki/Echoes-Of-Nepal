@@ -1,6 +1,7 @@
 import HeroSection from "@/components/home/HeroSection";
 import StatsSection from "@/components/home/StatsSection";
 import FeaturedDestinations from "@/components/home/FeaturedDestinations";
+import FeaturedTreks from "@/components/home/FeaturedTreks";
 import ExploreMapCTA from "@/components/home/ExploreMapCTA";
 import LatestStories from "@/components/home/LatestStories";
 import VendorCTASection from "@/components/home/VendorCTASection";
@@ -12,6 +13,7 @@ export default function HomePage() {
       <HeroSection />
       <StatsSection />
       <FeaturedDestinations />
+      <FeaturedTreks />
       <ExploreMapCTA />
       <LatestStories />
       <VendorCTASection />

@@ -1,0 +1,293 @@
+ 
+   
+Academic  
+Year  Module  Assessment  
+Number  Assessment Type  
+2025  Project and Professionalism  1 Proposal  
+                                                             
+                                                                 Ecohes Of Nepal  Proposal  
+Student ID: 2408893  
+Student Name: Biraj Jung Karki  
+Group:  L6CG7 
+Supervisor : Dagendra Rajbansi  
+Reader : Johnson Dhakal  
+  
+ 
+
+ 
+  Table of Contents  
+ 
+1.  Introduction & Problem Statement  ................................ ................................ .........................  1 
+2. Academic Questions  ................................ ................................ ................................ ..............  2 
+3. Project Goals  ................................ ................................ ................................ .........................  3 
+4. Project Objectives  ................................ ................................ ................................ ..................  4 
+5. Project as a Solution  ................................ ................................ ................................ ..............  5 
+6. Background of the Study  ................................ ................................ ................................ ........  6 
+7. Functional Decomposition Diagram (FDD) and Functionalities  ................................ ...............  7 
+8. Software Development Life Cycle (SDLC) Overview  ................................ ..............................  9 
+9. Technology Stack  ................................ ................................ ................................ ................. 10 
+11. Testing Methodologies  ................................ ................................ ................................ ........ 11 
+12. Limitations  ................................ ................................ ................................ ........................... 12 
+13.Conclusion  ................................ ................................ ................................ ........................... 13 
+ 
+  
+ 
+  Table of Figures  
+ 
+ 
+Figure 1:Functional Decomposition Diagram  ................................ ................................ ..............  7 
+ 
+1 | P a g e  
+  
+ 
+1.  Introduction & Problem Statement  
+ 
+Tourism is one of Nepal’s strongest economic drivers, with millions of visitors attracted each 
+year by its mountains, culture, and festivals. However, despite this potential, the tourism sector 
+lacks a centralized, modern, and youth -friendly digital platform that integrates authentic travel 
+content, business services, and safety features. Tourists often rely on fragmented sources of 
+information, which makes it difficult to plan trips with confidence. On the other hand, local 
+businesses such as homestays and guides struggle to reach travelers effectively due to limited 
+online visibility.  
+ 
+There is no single integrated platform in Nepal that combines community -driven content, AI -
+powered recommendations, vendor dashboards, and emergency support, which restricts the 
+growth of the tourism industry and reduces the quality of traveler experiences.   
+ 
+2 | P a g e  
+  
+ 
+2. Academic Questions  
+ 
+The project will att empt to answer the following academic and technical questions:  
+ How can a full -stack tourism application integrate user -generated content, AI -powered 
+travel recommendations, and vendor services within one ecosystem?  
+ 
+ What is the most efficient way to design  an AI recommendation engine that considers 
+user preferences, budget, and seasonality in Nepal’s tourism context?  
+ 
+ How can safety features such as SOS alerts be embedded into a web application to 
+assist trekkers and travelers in remote areas?  
+ 
+ To what exte nt can data analytics (on destinations, trends, and user interests) benefit 
+local vendors and tourism boards for decision -making?  
+ 
+ What design and development practices ensure that the platform remains scalable, 
+accessible, and multilingual?  
+  
+ 
+3 | P a g e  
+ 3. Project Goals  
+ 
+The endeavor behind Echoes of Nepal is to develop a tourism solution that is not only smart and 
+community -centric but also focused on elevating the experience of travel while enhancing safety 
+and creating business avenues for community traders. The initiative attempts to resolve the core 
+issues faced by travelers, small business owners, and regulation authorities and to make the 
+solution theoretically profound and practically useful.   
+ 
+4 | P a g e  
+  
+ 
+4. Project Objectives  
+ 
+To meet this aim, the project will addres s the following objectives:  
+ 
+1. Allow users to register, create profiles, and share genuine travel stories, photos, and 
+cultural experiences.  
+ 
+2. Create and integrate an AI -driven recommendation system that offers suggestions 
+tailored to the user's interests, se ason, and budget.  
+ 
+3. Create vendor dashboards for guides, homestays, and small enterprises to upload 
+packages, generate QR codes, and view analytics.  
+ 
+4. Use interactive maps to display trekking routes, cultural landmarks, and user -marked 
+points of interest.  
+ 
+5. Enable offline functionalities like downloadable trail guides and QR -based entry in areas 
+with weak internet.  
+ 
+6. Try to d evelop an SOS alert system that transmits GPS location –based emergency 
+alerts to contacts or nearby rescue services.  
+ 
+7. Add data analytics a nd reporting features that allow vendors and policymakers to track 
+patterns and identify opportunities.  
+ 
+8. Add multilingual functionality (English and Nepali) to increase platform usability.  
+  
+ 
+5 | P a g e  
+  
+ 
+5. Project as a Solution  
+ 
+The project advocates an all -in-one centralized tourism platform that equally prioritizes modern 
+technologies and their thoughtful integration with the preservation of culture. Unlike traditional 
+travel sites with mere text -based information, Echoes of Nepal enables experience sharing, AI -
+driven personalized travel recommendations, and specially designed offline and emergency 
+tools. On the other hand, retailers will enjoy improved business analytics tools that foster better 
+business insight and growth.  
+ 
+The combination of AI, mapping tools, o ffline availability, and safety features in a single travel 
+platform is unprecedented for Nepal and so is the project. This project, however, serves as an 
+answer to a pressing challenge in a sustainable manner, rather than an attempt for short -term 
+technic al gain. By equipping tourists with trustworthy technology and empowering local 
+businesses to access their target customers, this platform fosters the growth both of 
+communities and the economy, which is unique.   
+ 
+6 | P a g e  
+ 6. Background of the Study  
+ 
+On a global scale, travelers have experienced a paradigm shift in planning with the advent of 
+tourism platforms such as TripAdvisor, Booking.com, and Google Maps. Despite their 
+widespread usability, these platforms offer little to no insight on the unique cultures of different 
+regions, nor do they address safety concerns and offline accessibility, which is of great 
+importance in a country like Nepal that is deeply cherished for its off -the-beaten -path trekking 
+and world heritage trails.  
+ 
+Set against the backdrop of Nep al, numerous small -scale operators in the tourism sector make 
+use of outdated websites or bland old -fashioned word of mouth to draw in tourists. This 
+perpetuates a form of digital inequality where only the big hotels and international tourism 
+companies hav e the luxury to be seen. It has previously been established that the involvement 
+of local vendors, the use of smart technology, and the knowledge of the community can be of 
+immense benefit to tourism. The construction of an AI -driven, localized, and safety -focused 
+platform can thus aid in a more practical as well as academic sense.   
+ 
+7 | P a g e  
+ 7. Functional Decomposition Diagram (FDD) and Functionalities  
+ 
+ 
+Figure 1:Functional Decomposition Diagram  
+In an effort to break down the proposed syste m into manageable units, a Functional 
+Decomposition Diagram (FDD) is used. This diagram divides the platform into core modules and 
+their respective sub -functions, making it easier to visualize and model the system. At the 
+topmost level, Echoes of Nepal is structured into three major modules: the User Module, the 
+Vendor Module, and the Admin Module.  
+ 
+The User Module addresses the needs of travellers and young adventurers who engage with 
+the platform. After registering and logging in to their accounts, users can compile their profiles 
+and share travel narratives, photographs, and cultural insights. Users can also obtain AI -driven 
+travel suggestions, which take into account their interests, budgets, and the appropriate 
+seasons, thus enhancing the personalizatio n of their travels. In addition, users have the ability to 
+engage with interactive smart maps, download offline guides and QR -based information, and 
+activate the SOS feature in emergencies. Collectively, these functionalities provide users with 
+tools that are rich in information and focus on their safety during travels.  
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+8 | P a g e  
+ The Vendor Module is intended for local guides, homestay providers, and trekking agencies. 
+Once verified, vendors can create and update their business profiles, publish travel package s. 
+This module also provides a dashboard with key performance indicators, allowing vendors to 
+monitor the performance of their offers, track popular destinations, and see user engagement 
+with their content. The Vendor Module provides valuable tools that he lp small enterprises 
+engage with travellers in a digital -first manner and make informed business decisions based on 
+real data.  
+The Admin Module is responsible for maintaining the integrity and credibility of the system. 
+Admins oversee the entire platform b y verifying vendor registrations, approving packages, and 
+ensuring authenticity in content. They also monitor SOS alerts raised by travelers, coordinating 
+potential responses to emergencies. Additionally, admins are able to generate real -time tourism 
+repor ts, which can be used by government bodies or agencies to track trends and improve 
+policies. Thus, the Admin Module ensures not just supervision but also strategic guidance for 
+the tourism industry.   
+ 
+9 | P a g e  
+ 8. Software Development Life Cycle (SDLC) Overview  
+ 
+The development of Echoes of Nepal will adopt the Agile Software Development Life Cycle 
+(SDLC) methodology. Agile is chosen for its flexibility, iterative nature, and focus on continuous 
+feedback — qualities that are important for balancing technical requireme nts with practical user 
+needs.  
+In the Requirement Gathering Phase, the project will consider the perspectives of travelers, 
+local vendors, and administrators to identify key features such as AI recommendations, maps, 
+and SOS alerts. The System Design Phase  will then focus on creating wireframes, architecture 
+diagrams, and database schemas, ensuring the system’s front -end and back -end elements 
+integrate seamlessly. During the Implementation Phase, the team will work in iterative sprints to 
+build modules incl uding authentication, content posting, vendor dashboards, and AI 
+recommendations.  
+The Testing Phase will include unit, integration, and system testing, as well as User Acceptance 
+Testing (UAT) with selected users like students or local vendors to validate usability. The 
+Deployment Phase will see the application hosted on cloud platforms with automated 
+deployment pipelines. Finally, the Maintenance Phase will handle feedback, updates, and 
+scaling, ensuring the system evolves alongside user expectations.  
+  
+ 
+10 | P a g e  
+  
+9. Technology Stack  
+ 
+ 
+The technology stack for Echoes of Nepal has been carefully selected for scalability, 
+performance, and security. The Frontend will be developed using Next.js, a React -based 
+framework that allows server -side rendering, responsive inter faces, and offline PWA support. 
+The Backend will be powered by Node.js with Express, ensuring fast and scalable handling of 
+API requests.  
+The Database may employ either MongoDB for flexible document -based storage or PostgreSQL 
+for structured relational dat a, depending on the type of information handled. Authentication and 
+Security will be implemented using JWT or Google OAuth, ensuring secure access control for 
+users and vendors. Maps Integration will rely on Mapbox or Google Maps to provide detailed 
+naviga tion and cultural overlays.  
+For the AI Engine, the platform will use either the OpenAI API or custom -trained ML models to 
+recommend destinations and experiences. Notifications will be sent using services like Twilio or 
+MSG91, ensuring reliable delivery of SOS alerts and updates. Offline functionality will be 
+achieved through PWA caching and QR -based guides. This stack is both modern and industry -
+relevant, allowing the project to demonstrate practical application of widely adopted tools.  
+ 
+ 
+  
+ 
+11 | P a g e  
+ 11. Testing Meth odologies  
+ 
+Proper testing procedures will have to be followed to complete the project in a manner such that 
+the completed work is reliable, secure, and user -friendly. Proper unit testing will check individual 
+functionalities such as logging in, posting sto ries, and SOS alerts. Integration testing will be 
+done to check the integration of different modules, ensuring there is smooth cooperation 
+between the frontend, backend, and the database. System testing will be conducted to verify 
+that complete workflows —from user registration to vendor package booking —function correctly.  
+ 
+A select group of travellers and vendors will be invited to test the platform in real time in order to 
+conduct the User Acceptance Testing (UAT) phase, which focuses on usability feedbac k. In 
+addition, Performance Testing will ascertain how well the system copes with simultaneous 
+users, with special focus on peak travel periods. Security Testing will be conducted to find and 
+fix any weaknesses such as unauthorized access or injection atta cks, especially considering the 
+sensitive vendor and user data. The combination of these procedures helps guarantee that the 
+platform is reliable both from a technical standpoint and in the trust of the users.   
+ 
+12 | P a g e  
+ 12. Limitations  
+ 
+Although Echoes of Nepal provides a comprehensive platform, some limitations are recognized. 
+The SOS system will require strong coordination with local authorities and rescue teams, 
+without which it may not achieve its full effectiveness. The AI recommendation engine will 
+initiall y rely on limited datasets until sufficient community -generated content is collected, which 
+may affect the accuracy of early suggestions. Offline access will also be limited to downloadable 
+PDFs and QR codes in the first phase.  
+ 
+Another limitation is scala bility: while the project will be able to handle a reasonable number of 
+users, sudden growth in user base — such as during peak tourist seasons — may require 
+additional investment in cloud infrastructure. Despite these limitations, the project provides a 
+strong foundation that can be expanded in future iterations to include multilingual support 
+beyond English and Nepali, AR/VR experiences, and mobile -native applications.  
+  
+ 
+13 | P a g e  
+ 13.Conclusion  
+ 
+Echoes of Nepal represents a forward -looking solution for Nepal’s tour ism industry by 
+combining community -driven content, AI -powered recommendations, vendor dashboards, and 
+safety tools into a unified ecosystem. From an academic standpoint, it demonstrates the 
+application of full -stack development, artificial intelligence, g eospatial mapping, and agile 
+methodologies. From an industry standpoint, it provides real value by empowering small 
+businesses, supporting tourists, and offering data insights to tourism boards.  
+This project is more than just a technical exercise; it is a socially impactful initiative that has the 
+potential to change how travelers experience Nepal and how vendors present their services. By 
+balancing academic rigor with industry relevance, Echoes of Nepal stands as an ideal Final 
+Year Project that could evol ve into a real -world platform, helping Nepal harness its tourism 
+potential in innovative and sustainable ways.  
+ 

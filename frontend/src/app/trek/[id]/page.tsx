@@ -16,8 +16,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import OfflineDownloader from "@/components/OfflineDownloader";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+const getFirstImage = (story: any) => {
+    if (!Array.isArray(story?.media)) return null;
+
+    return story.media.find((item: any) => {
+        const type = String(item?.media_type || "").toLowerCase();
+        const url = String(item?.media_url || "");
+        return type !== "video" && !/\.(mp4|mov|webm)$/i.test(url);
+    }) || null;
+};
 
 export default function TrekDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -108,7 +119,7 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
         <div className="min-h-screen bg-[#020617] text-slate-200">
             
             {/* Hero Section */}
-            <div className="relative h-[80vh] w-full overflow-hidden">
+            <div className="relative min-h-[600px] h-[76vh] sm:h-[80vh] w-full overflow-hidden">
                 <img 
                     src={trek.image} 
                     alt={trek.name} 
@@ -116,13 +127,13 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent" />
                 
-                <div className="absolute inset-0 flex flex-col justify-end px-6 pb-12 lg:px-20 lg:pb-20 text-center items-center">
-                    <Link href="/explore" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-[0.4em] group">
+                <div className="absolute inset-0 flex flex-col justify-end px-4 pb-8 sm:px-6 sm:pb-12 lg:px-20 lg:pb-20 text-center items-center">
+                    <Link href="/explore" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 sm:mb-8 text-[10px] sm:text-xs font-bold uppercase tracking-[0.28em] sm:tracking-[0.4em] group">
                         <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to Global Hub
                     </Link>
                     
-                    <div className="flex flex-col items-center gap-6">
-                        <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-center gap-5 sm:gap-6">
+                        <div className="flex flex-wrap items-center justify-center gap-3">
                             <div className="inline-flex px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-black tracking-[0.3em] text-emerald-400 uppercase">
                                 {trek.difficulty} Grade
                             </div>
@@ -130,10 +141,10 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                                 High Altitude
                             </div>
                         </div>
-                        <h1 className="text-6xl lg:text-9xl font-black text-white leading-none mb-4 italic tracking-tighter uppercase drop-shadow-2xl">
+                        <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-white leading-[0.92] mb-4 italic tracking-tighter uppercase drop-shadow-2xl break-words">
                             {trek.name}
                         </h1>
-                        <div className="flex flex-wrap items-center justify-center gap-y-6 gap-x-12 text-xs font-black uppercase tracking-[0.3em] text-slate-300">
+                        <div className="flex flex-wrap items-center justify-center gap-y-4 gap-x-6 sm:gap-y-6 sm:gap-x-12 text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.3em] text-slate-300">
                             <span className="flex items-center gap-3"><MapPin size={20} className="text-emerald-500" /> {trek.district_name}</span>
                             <span className="flex items-center gap-3"><MountainSnow size={20} className="text-emerald-500" /> {trek.altitude}</span>
                             <span className="flex items-center gap-3"><Clock size={20} className="text-emerald-500" /> {trek.duration}</span>
@@ -143,29 +154,29 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
             </div>
 
             {/* Content Grid */}
-            <main className="max-w-7xl mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-3 gap-20">
+            <main id="trek-guide-content" className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-20">
                 
                 {/* Left Column: Details */}
-                <div className="lg:col-span-2 space-y-24">
+                <div className="lg:col-span-2 space-y-16 sm:space-y-24">
                     
                     {/* Metrics Dashboard */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                         <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                         <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
                             <BarChart3 className="text-emerald-400 mb-4 opacity-60" size={24} />
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Difficulty</span>
                             <span className="text-xl font-black text-white uppercase italic">{trek.difficulty}</span>
                          </div>
-                         <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
+                         <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
                             <Compass className="text-emerald-400 mb-4 opacity-60" size={24} />
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Peak Height</span>
                             <span className="text-xl font-black text-white">{trek.altitude}</span>
                          </div>
-                         <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
+                         <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
                             <Clock className="text-emerald-400 mb-4 opacity-60" size={24} />
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Est. Time</span>
                             <span className="text-xl font-black text-white">{trek.duration}</span>
                          </div>
-                         <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
+                         <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] text-center flex flex-col items-center group hover:bg-emerald-500/5 hover:border-emerald-500/20 transition-all duration-500">
                             <Calendar className="text-emerald-400 mb-4 opacity-60" size={24} />
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Best Season</span>
                             <span className="text-xs font-black text-white uppercase italic leading-tight text-center">
@@ -177,13 +188,13 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Description Section */}
                     <section className="animate-in fade-in duration-700">
                         <h2 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em] mb-8">Base Camp Narrative</h2>
-                        <p className="text-2xl text-slate-300 leading-relaxed font-medium mb-16">
+                        <p className="text-lg sm:text-2xl text-slate-300 leading-relaxed font-medium mb-10 sm:mb-16">
                             {trek.description}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             {/* Highlights */}
-                            <div className="p-10 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-[2.5rem] relative overflow-hidden group">
+                            <div className="p-6 sm:p-10 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-[2rem] sm:rounded-[2.5rem] relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[60px] rounded-full group-hover:bg-emerald-500/20 transition-all" />
                                 <h3 className="flex items-center gap-3 text-sm font-black text-white uppercase tracking-widest mb-8 border-b border-white/5 pb-4">
                                     <MountainSnow size={24} className="text-emerald-400" /> Trail Highlights
@@ -198,7 +209,7 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                             </div>
 
                             {/* Best Season */}
-                            <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[2.5rem]">
+                            <div className="p-6 sm:p-10 bg-white/[0.02] border border-white/5 rounded-[2rem] sm:rounded-[2.5rem]">
                                 <h3 className="flex items-center gap-3 text-sm font-black text-white uppercase tracking-widest mb-8 border-b border-white/5 pb-4">
                                     <MapPin size={24} className="text-emerald-400" /> Route Overview
                                 </h3>
@@ -223,19 +234,19 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                             <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-emerald-500/50 via-emerald-500/20 to-transparent" />
                             
                             {itinerary.length > 0 ? itinerary.map((day, i) => (
-                                <div key={i} className="relative pl-14 py-8 group">
+                                <div key={i} className="relative pl-10 sm:pl-14 py-6 sm:py-8 group">
                                     {/* Timeline Node */}
-                                    <div className="absolute left-[14px] top-9 w-5 h-5 rounded-full bg-[#020617] border-2 border-emerald-500 flex items-center justify-center outline outline-4 outline-emerald-500/10 group-hover:scale-125 transition-transform duration-500">
+                                    <div className="absolute left-[8px] sm:left-[14px] top-7 sm:top-9 w-5 h-5 rounded-full bg-[#020617] border-2 border-emerald-500 flex items-center justify-center outline outline-4 outline-emerald-500/10 group-hover:scale-125 transition-transform duration-500">
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                     </div>
                                     
-                                    <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] group-hover:bg-emerald-500/5 group-hover:border-emerald-500/20 transition-all duration-700 shadow-sm">
+                                    <div className="p-5 sm:p-8 bg-white/[0.02] border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] group-hover:bg-emerald-500/5 group-hover:border-emerald-500/20 transition-all duration-700 shadow-sm">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
                                             <div>
                                                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-2 block italic">Day {day.day_number}</span>
                                                 <h4 className="text-xl font-black text-white uppercase italic tracking-tight">{day.title}</h4>
                                             </div>
-                                            <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                                                 <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"><Compass size={12}/> {day.distance}</span>
                                                 <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"><MountainSnow size={12}/> {day.altitude}</span>
                                                 <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"><Clock size={12}/> {day.duration}</span>
@@ -269,15 +280,24 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
 
                     {/* Stories Section */}
                     <section>
-                        <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
+                        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between mb-8 border-b border-white/5 pb-4">
                             <h2 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">Echoes from the Trail</h2>
                             <Link href="/echoes" className="text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all">View All Stories</Link>
                         </div>
                         {stories.length > 0 ? (
                             <div className="space-y-6">
                                 {stories.map((story) => (
-                                    <div key={story.id} className="p-8 bg-white/[0.01] border border-white/5 rounded-3xl hover:bg-white/[0.03] transition-all group">
-                                        <div className="flex items-center justify-between mb-6">
+                                    <div key={story.id} className="p-5 sm:p-8 bg-white/[0.01] border border-white/5 rounded-[1.75rem] sm:rounded-3xl hover:bg-white/[0.03] transition-all group">
+                                        {getFirstImage(story)?.media_url && (
+                                            <div className="mb-6 overflow-hidden rounded-[1.75rem] border border-white/5 bg-black/30">
+                                                <img
+                                                    src={getFirstImage(story).media_url}
+                                                    alt={story.title}
+                                                    className="h-48 sm:h-64 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex items-start justify-between gap-4 mb-6">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-full border border-emerald-500/30 overflow-hidden bg-emerald-500/10">
                                                     {story.author_profile_image && <img src={story.author_profile_image} className="w-full h-full object-cover" />}
@@ -304,10 +324,27 @@ export default function TrekDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* Right Column: Vendors & CTA */}
-                <div className="space-y-8">
+                <div className="space-y-8" data-html2canvas-ignore>
                     
+                    {/* Offline Support */}
+                    <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-blue-500/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                                <BookOpen size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xs font-black text-blue-50 text-blue-400 uppercase tracking-widest">Offline Guide</h3>
+                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Save Before You Go</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6">
+                            Internet access is limited in the mountains. Download a PDF of the route details and itinerary.
+                        </p>
+                        <OfflineDownloader targetId="trek-guide-content" fileName={trek.name} />
+                    </div>
+
                     {/* Booking Control */}
-                    <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-white/10 rounded-[3rem] p-10 shadow-2xl sticky top-28 border-emerald-500/10">
+                    <div className="bg-[#0f172a]/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl lg:sticky lg:top-28 border-emerald-500/10">
                         <div className="flex items-center gap-4 mb-10">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                                 <Briefcase size={24} />

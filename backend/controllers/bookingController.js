@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { createNotification } from "../utils/notificationUtils.js";
 
 // ==========================================
 // USER BOOKING REQUESTS
@@ -51,6 +52,17 @@ export const createBooking = async (req, res) => {
         `;
         const result = await pool.query(insertQuery, [userId, vendor_id, listing_id, travel_date, people_count, contact_name, contact_phone, contact_email, message, totalAmount]);
 
+        // Get vendor owner_user_id
+        const vendorRes = await pool.query("SELECT owner_user_id FROM vendors WHERE id = $1", [vendor_id]);
+        if (vendorRes.rows.length > 0) {
+            await createNotification({
+                userId: vendorRes.rows[0].owner_user_id,
+                type: "booking_request",
+                title: "New Booking Request",
+                message: `You have a new booking request from ${contact_name}.`,
+                link: `/vendor/bookings`
+            });
+        }
         res.status(201).json({ message: "Booking request submitted successfully.", booking: result.rows[0] });
     } catch (err) {
         console.error("createBooking error:", err);
@@ -123,7 +135,15 @@ export const updateBookingStatus = async (req, res) => {
             [status, id]
         );
 
-        res.json({ message: "Booking status updated", booking: result.rows[0] });
+        const updatedBooking = result.rows[0];
+        await createNotification({
+            userId: updatedBooking.user_id,
+            type: "booking_status",
+            title: "Booking Update",
+            message: `Your booking request has been ${status}.`,
+            link: `/my-bookings`
+        });
+        res.json({ message: "Booking status updated", booking: updatedBooking });
     } catch (err) {
         console.error("updateBookingStatus error:", err);
         res.status(500).json({ error: "Failed to update booking status" });
@@ -223,7 +243,18 @@ export const verifyKhaltiPayment = async (req, res) => {
             `;
             const result = await pool.query(updateQuery, [khaltiData.transaction_id || pidx, bookingId]);
             
-            res.json({ success: true, message: "Payment verified and booking confirmed.", booking: result.rows[0] });
+            const confirmedBooking = result.rows[0];
+            const vendorOwnerRes = await pool.query("SELECT owner_user_id FROM vendors WHERE id = $1", [confirmedBooking.vendor_id]);
+            if (vendorOwnerRes.rows.length > 0) {
+                await createNotification({
+                    userId: vendorOwnerRes.rows[0].owner_user_id,
+                    type: "booking_payment",
+                    title: "Payment Received",
+                    message: `Payment verified for booking #${confirmedBooking.id}.`,
+                    link: `/vendor/bookings`
+                });
+            }
+            res.json({ success: true, message: "Payment verified and booking confirmed.", booking: confirmedBooking });
         } else {
             console.error("Khalti lookup fail/error:", khaltiData);
             res.status(400).json({ success: false, error: "Payment verification failed or not completed." });

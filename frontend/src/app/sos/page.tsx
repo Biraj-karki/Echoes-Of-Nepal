@@ -4,20 +4,57 @@ import React, { useState } from 'react';
 import { AlertCircle, Loader2, Send, CheckCircle2, Phone, ShieldAlert, HeartPulse, LifeBuoy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/app/AuthProvider';
+import { useSocket } from '@/app/SocketProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { API_BASE } from '@/lib/api';
 
 export default function SOSPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { socket } = useSocket();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [customMessage, setCustomMessage] = useState('');
+    const [myAlerts, setMyAlerts] = useState<any[]>([]);
 
     useEffect(() => {
         if (!authLoading && !user) {
             router.push('/login?redirect=/sos');
+        } else if (user) {
+            fetchMyAlerts();
         }
     }, [user, authLoading, router]);
+
+    useEffect(() => {
+        if (!socket) return;
+        
+        const handleNotification = (notification: any) => {
+            if (notification.type === 'sos_update') {
+                fetchMyAlerts();
+            }
+        };
+
+        socket.on('new_notification', handleNotification);
+        return () => {
+            socket.off('new_notification', handleNotification);
+        };
+    }, [socket]);
+
+    const fetchMyAlerts = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/sos/my-alerts`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMyAlerts(data.alerts || []);
+            }
+        } catch (e) {
+            console.error("Failed to fetch alerts", e);
+        }
+    };
 
     if (authLoading || !user) {
         return (
@@ -42,9 +79,7 @@ export default function SOSPage() {
 
             try {
                 const token = localStorage.getItem("token");
-                const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-                const res = await fetch(`${apiBase}/api/sos`, {
+                const res = await fetch(`${API_BASE}/api/sos`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -53,12 +88,14 @@ export default function SOSPage() {
                     body: JSON.stringify({
                         latitude,
                         longitude,
-                        message: "Emergency SOS triggered from dedicated SOS page"
+                        message: customMessage.trim() || "Emergency SOS triggered from dedicated SOS page"
                     })
                 });
 
                 if (res.ok) {
                     setStatus('success');
+                    setCustomMessage('');
+                    fetchMyAlerts();
                 } else {
                     throw new Error("Failed to send alert");
                 }
@@ -128,18 +165,27 @@ export default function SOSPage() {
                                 <Button variant="ghost" onClick={() => setStatus('idle')} className="text-xs text-slate-500">Send another alert</Button>
                             </div>
                         ) : (
-                            <Button 
-                                onClick={handleSOS}
-                                disabled={loading}
-                                className="w-full h-20 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black text-2xl shadow-xl shadow-red-600/30 transition-all active:scale-95 flex items-center justify-center gap-4"
-                            >
-                                {loading ? (
-                                    <Loader2 className="w-8 h-8 animate-spin" />
-                                ) : (
-                                    <Send className="w-8 h-8" />
-                                )}
-                                SEND SOS
-                            </Button>
+                            <div className="space-y-4">
+                                <textarea
+                                    value={customMessage}
+                                    onChange={(e) => setCustomMessage(e.target.value)}
+                                    placeholder="Optional: Describe your situation (e.g., 'Injured leg', 'Lost on trail')"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500/50 resize-none h-24 text-sm"
+                                    disabled={loading}
+                                />
+                                <Button 
+                                    onClick={handleSOS}
+                                    disabled={loading}
+                                    className="w-full h-20 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black text-2xl shadow-xl shadow-red-600/30 transition-all active:scale-95 flex items-center justify-center gap-4"
+                                >
+                                    {loading ? (
+                                        <Loader2 className="w-8 h-8 animate-spin" />
+                                    ) : (
+                                        <Send className="w-8 h-8" />
+                                    )}
+                                    SEND SOS
+                                </Button>
+                            </div>
                         )}
                         
                         {status === 'error' && (
@@ -178,6 +224,41 @@ export default function SOSPage() {
                     </div>
 
                 </div>
+
+                {/* MY ACTIVE ALERTS */}
+                {myAlerts.length > 0 && (
+                    <div className="bg-slate-900/40 border border-white/10 rounded-[3rem] p-8 space-y-6">
+                        <h3 className="text-2xl font-bold flex items-center gap-3">
+                            <ShieldAlert className="text-blue-500" />
+                            Your Recent Alerts
+                        </h3>
+                        <div className="grid gap-4">
+                            {myAlerts.map(alert => (
+                                <div key={alert.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 transition-all hover:bg-white/10">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-300">Sent on: {new Date(alert.created_at).toLocaleString()}</p>
+                                            <p className="text-xs text-slate-500 mt-1 italic">"{alert.message}"</p>
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
+                                            alert.status === 'active' ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                        }`}>
+                                            {alert.status}
+                                        </span>
+                                    </div>
+                                    {alert.notes && (
+                                        <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                            <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                <HeartPulse className="w-4 h-4" /> Response Team Notes
+                                            </p>
+                                            <p className="text-sm text-slate-200 mt-2">{alert.notes}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* SAFETY TIPS */}
                 <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8">

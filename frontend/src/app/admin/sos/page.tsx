@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertCircle, CheckCircle, MapPin, Clock, ExternalLink, MessageSquare, Save, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '../../../components/ui/Button';
+import { useSocket } from '@/app/SocketProvider';
+import { API_BASE } from '@/lib/api';
 
 interface SOSAlert {
     id: number;
@@ -24,14 +26,13 @@ export default function AdminSOSPage() {
     const [error, setError] = useState<string | null>(null);
     const [editingNotes, setEditingNotes] = useState<Record<number, string>>({});
     const [saving, setSaving] = useState<Record<number, boolean>>({});
+    const { socket } = useSocket();
 
     const fetchAlerts = async () => {
         try {
             // Check both locations where tokens might be stored
             const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            
-            const res = await fetch(`${apiBase}/api/sos/admin/all`, {
+            const res = await fetch(`${API_BASE}/api/sos/admin/all`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -61,18 +62,30 @@ export default function AdminSOSPage() {
 
     useEffect(() => {
         fetchAlerts();
-        const interval = setInterval(fetchAlerts, 15000); 
-        return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleAdminAlert = (notification: any) => {
+            if (notification.type === 'sos_alert') {
+                fetchAlerts();
+            }
+        };
+
+        socket.on('admin_alert', handleAdminAlert);
+
+        return () => {
+            socket.off('admin_alert', handleAdminAlert);
+        };
+    }, [socket]);
 
     const handleUpdateSituation = async (id: number, status: 'active' | 'resolved') => {
         setSaving({ ...saving, [id]: true });
         try {
             const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            
             const endpoint = status === 'resolved' ? 'resolve' : 'update';
-            const res = await fetch(`${apiBase}/api/sos/admin/${endpoint}/${id}`, {
+            const res = await fetch(`${API_BASE}/api/sos/admin/${endpoint}/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,10 +93,10 @@ export default function AdminSOSPage() {
                 },
                 body: JSON.stringify({ notes: editingNotes[id] || "" })
             });
-            
+
             if (res.ok) {
                 await fetchAlerts();
-                setEditingNotes(prev => {
+                setEditingNotes((prev: Record<number, string>) => {
                     const next = { ...prev };
                     delete next[id];
                     return next;
@@ -108,13 +121,13 @@ export default function AdminSOSPage() {
                         {error} Only authorized emergency personnel with valid admin credentials can view live SOS data.
                     </p>
                     <div className="flex flex-col gap-3">
-                        <Button 
+                        <Button
                             onClick={() => window.location.href = '/admin/login'}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                         >
                             Sign in as Administrator
                         </Button>
-                        <Button 
+                        <Button
                             onClick={() => window.location.href = '/'}
                             variant="ghost"
                             className="text-slate-500 hover:text-white"
@@ -152,7 +165,7 @@ export default function AdminSOSPage() {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 flex gap-8">
                         <div className="text-center">
                             <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Total Alerts</p>
@@ -161,7 +174,7 @@ export default function AdminSOSPage() {
                         <div className="text-center border-l border-white/10 pl-8">
                             <p className="text-[10px] uppercase tracking-widest text-red-500 mb-1">Active</p>
                             <p className="text-2xl font-black text-red-500">
-                                {alerts.filter(a => a.status === 'active').length}
+                                {alerts.filter((a: SOSAlert) => a.status === 'active').length}
                             </p>
                         </div>
                     </div>
@@ -177,21 +190,19 @@ export default function AdminSOSPage() {
                             <p className="text-slate-400 max-w-md mx-auto">No emergency alerts detected in the region. All travelers are currently accounted for.</p>
                         </div>
                     ) : (
-                        alerts.map((alert) => (
-                            <div 
-                                key={alert.id} 
-                                className={`group bg-slate-900/40 border transition-all duration-500 rounded-[2.5rem] overflow-hidden ${
-                                    alert.status === 'active' 
-                                    ? 'border-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.1)] ring-1 ring-red-500/20' 
+                        alerts.map((alert: SOSAlert) => (
+                            <div
+                                key={alert.id}
+                                className={`group bg-slate-900/40 border transition-all duration-500 rounded-[2.5rem] overflow-hidden ${alert.status === 'active'
+                                    ? 'border-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.1)] ring-1 ring-red-500/20'
                                     : 'border-white/10 opacity-70 grayscale-[0.5]'
-                                }`}
+                                    }`}
                             >
                                 <div className="p-8">
                                     <div className="flex flex-col lg:flex-row gap-8">
                                         <div className="flex-shrink-0 w-full lg:w-64 space-y-4">
-                                            <div className={`p-6 rounded-[2rem] flex flex-col items-center text-center gap-3 ${
-                                                alert.status === 'active' ? 'bg-red-500/10 text-red-500' : 'bg-slate-800/50 text-slate-400'
-                                            }`}>
+                                            <div className={`p-6 rounded-[2rem] flex flex-col items-center text-center gap-3 ${alert.status === 'active' ? 'bg-red-500/10 text-red-500' : 'bg-slate-800/50 text-slate-400'
+                                                }`}>
                                                 <AlertCircle className={`w-12 h-12 ${alert.status === 'active' ? 'animate-pulse' : ''}`} />
                                                 <div>
                                                     <p className="text-[10px] uppercase tracking-[0.2em] font-black opacity-60">Status</p>
@@ -212,7 +223,7 @@ export default function AdminSOSPage() {
                                                     <Clock className="w-4 h-4 text-blue-500" />
                                                     <span>Triggered {new Date(alert.created_at).toLocaleString()}</span>
                                                 </div>
-                                                <a 
+                                                <a
                                                     href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
@@ -238,17 +249,17 @@ export default function AdminSOSPage() {
                                                         <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Situation Update</p>
                                                     </div>
                                                 </div>
-                                                
-                                                <textarea 
+
+                                                <textarea
                                                     className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                                                     placeholder="Enter updates on the emergency response..."
                                                     rows={3}
                                                     value={editingNotes[alert.id] !== undefined ? editingNotes[alert.id] : (alert.notes || "")}
-                                                    onChange={(e) => setEditingNotes({...editingNotes, [alert.id]: e.target.value})}
+                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditingNotes({ ...editingNotes, [alert.id]: e.target.value })}
                                                 />
 
                                                 <div className="flex gap-3">
-                                                    <Button 
+                                                    <Button
                                                         onClick={() => handleUpdateSituation(alert.id, 'active')}
                                                         disabled={saving[alert.id] || editingNotes[alert.id] === undefined}
                                                         className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex-grow font-bold flex items-center justify-center gap-2"
@@ -256,9 +267,9 @@ export default function AdminSOSPage() {
                                                         {saving[alert.id] ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                                         Save Situation Update
                                                     </Button>
-                                                    
+
                                                     {alert.status === 'active' && (
-                                                        <Button 
+                                                        <Button
                                                             onClick={() => handleUpdateSituation(alert.id, 'resolved')}
                                                             disabled={saving[alert.id]}
                                                             className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-8 font-black uppercase tracking-widest text-xs"

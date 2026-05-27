@@ -15,7 +15,8 @@ import {
     List,
     X,
     Upload,
-    Briefcase
+    Briefcase,
+    QrCode
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -31,11 +32,23 @@ export default function VendorListingsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
+    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
     // Form states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingListing, setEditingListing] = useState<any>(null);
     const [saving, setSaving] = useState(false);
+
+    // QR Code modal states
+    const [selectedListingForQr, setSelectedListingForQr] = useState<any>(null);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+    const openQrCode = (listing: any) => {
+        setSelectedListingForQr(listing);
+        setIsQrModalOpen(true);
+    };
     
     // Reference data
     const [districts, setDistricts] = useState<any[]>([]);
@@ -54,7 +67,8 @@ export default function VendorListingsPage() {
         rating: 4.5,
         amenities: [] as string[]
     });
-    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
     useEffect(() => {
         if (!vendor) return;
@@ -86,6 +100,8 @@ export default function VendorListingsPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
+        setErrorMsg("");
+        setSuccessMsg("");
         try {
             const token = localStorage.getItem("token");
             const formData = new FormData();
@@ -97,7 +113,8 @@ export default function VendorListingsPage() {
                     formData.append(key, val);
                 }
             });
-            if (imageFile) formData.append("image", imageFile);
+            formData.append("existing_image_urls", JSON.stringify(existingImageUrls));
+            imageFiles.forEach((file) => formData.append("images", file));
 
             const url = editingListing 
                 ? `${API_BASE}/api/vendors/listings/${editingListing.id}` 
@@ -113,29 +130,47 @@ export default function VendorListingsPage() {
                 setIsModalOpen(false);
                 fetchData();
                 setEditingListing(null);
-                setImageFile(null);
+                setImageFiles([]);
+                setExistingImageUrls([]);
+                setSuccessMsg(editingListing ? "Listing updated successfully." : "Listing created successfully.");
             } else {
                 const err = await res.json();
-                alert(err.error || "Save failed");
+                setErrorMsg(err.error || "Save failed");
             }
         } catch (e) {
             console.error(e);
+            setErrorMsg("Something went wrong while saving the listing.");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this listing?")) return;
+        setPendingDeleteId(id);
+        setErrorMsg("");
+        setSuccessMsg("");
+    };
+
+    const confirmDelete = async () => {
+        if (!pendingDeleteId) return;
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_BASE}/api/vendors/listings/${id}`, {
+            const res = await fetch(`${API_BASE}/api/vendors/listings/${pendingDeleteId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (res.ok) fetchData();
+            if (res.ok) {
+                setSuccessMsg("Listing deleted successfully.");
+                fetchData();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                setErrorMsg(err.error || "Failed to delete listing.");
+            }
         } catch (e) {
             console.error(e);
+            setErrorMsg("Something went wrong while deleting the listing.");
+        } finally {
+            setPendingDeleteId(null);
         }
     };
 
@@ -153,7 +188,8 @@ export default function VendorListingsPage() {
             rating: 4.5,
             amenities: []
         });
-        setImageFile(null);
+        setImageFiles([]);
+        setExistingImageUrls([]);
         setIsModalOpen(true);
     };
 
@@ -171,9 +207,26 @@ export default function VendorListingsPage() {
             rating: listing.rating || 4.5,
             amenities: Array.isArray(listing.amenities) ? listing.amenities : []
         });
-        setImageFile(null);
+        setImageFiles([]);
+        setExistingImageUrls(Array.isArray(listing.image_urls) ? listing.image_urls : (listing.image_url ? [listing.image_url] : []));
         setIsModalOpen(true);
     };
+
+    const selectedImagePreviews = imageFiles.map((file) => ({
+        key: `${file.name}-${file.size}-${file.lastModified}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+        existing: false,
+    }));
+
+    const existingImagePreviews = existingImageUrls.map((url, index) => ({
+        key: `${url}-${index}`,
+        name: `Image ${index + 1}`,
+        url,
+        existing: true,
+    }));
+
+    const imagePreviews = [...existingImagePreviews, ...selectedImagePreviews];
 
     const filteredListings = listings.filter(l => 
         l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -232,6 +285,41 @@ export default function VendorListingsPage() {
                 </button>
             </div>
 
+            {pendingDeleteId && (
+                <div className="rounded-[2rem] border border-red-500/20 bg-red-500/10 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p className="text-sm font-black uppercase tracking-widest text-red-300">Confirm Listing Deletion</p>
+                        <p className="text-sm text-slate-300 mt-1">Are you sure you want to delete this listing from your vendor portal?</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setPendingDeleteId(null)}
+                            className="px-5 py-2.5 rounded-2xl border border-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmDelete}
+                            className="px-5 py-2.5 rounded-2xl bg-red-600 text-white text-xs font-black uppercase tracking-widest hover:bg-red-500 transition-all"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {successMsg && (
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3 text-xs font-medium text-emerald-300">
+                    {successMsg}
+                </div>
+            )}
+
+            {errorMsg && (
+                <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-xs font-medium text-red-300">
+                    {errorMsg}
+                </div>
+            )}
+
             {loading ? (
                 <div className="py-32 grid place-items-center">
                     <div className="w-10 h-10 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin"></div>
@@ -276,6 +364,7 @@ export default function VendorListingsPage() {
                                 </div>
 
                                 <div className="mt-8 pt-6 border-t border-white/5 flex gap-3">
+                                    <button onClick={() => openQrCode(listing)} className="p-3 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 rounded-xl transition-all border border-blue-500/20 hover:scale-105 active:scale-95" title="Generate Listing QR Code"><QrCode size={18} /></button>
                                     <button onClick={() => openEdit(listing)} className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-black text-white transition-all uppercase tracking-widest">Edit Details</button>
                                     <button onClick={() => handleDelete(listing.id)} className="p-3 bg-red-500/5 hover:bg-red-500/10 text-red-500/60 hover:text-red-500 rounded-xl transition-all border border-transparent hover:border-red-500/20"><Trash2 size={18} /></button>
                                 </div>
@@ -318,6 +407,7 @@ export default function VendorListingsPage() {
                                     </td>
                                     <td className="p-6 pr-8 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => openQrCode(listing)} className="p-2 text-slate-400 hover:text-blue-400 transition-colors" title="QR Code"><QrCode size={18} /></button>
                                             <button onClick={() => openEdit(listing)} className="p-2 text-slate-400 hover:text-white transition-colors"><Edit2 size={18} /></button>
                                             <button onClick={() => handleDelete(listing.id)} className="p-2 text-slate-600 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
                                         </div>
@@ -330,6 +420,130 @@ export default function VendorListingsPage() {
             )}
 
             {/* Modal for Add/Edit */}
+            {/* QR Code Modal */}
+            {isQrModalOpen && selectedListingForQr && (
+                <div className="fixed inset-0 z-[120] grid place-items-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-[#0a0f1d] border border-white/10 rounded-[3rem] w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
+                        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                            <div>
+                                <h3 className="text-xl font-black text-white italic">Listing QR Code</h3>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Scan to view package details</p>
+                            </div>
+                            <button onClick={() => setIsQrModalOpen(false)} className="p-3 hover:bg-white/10 text-slate-400 rounded-2xl transition-all"><X size={20} /></button>
+                        </div>
+                        
+                        <div className="p-8 flex flex-col items-center text-center space-y-6">
+                            {/* Poster Layout */}
+                            <div className="bg-slate-900 border border-white/10 rounded-[2rem] p-8 w-full flex flex-col items-center space-y-6 shadow-xl relative overflow-hidden group">
+                                <div className="absolute -top-12 -right-12 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700"></div>
+                                <div className="absolute -bottom-12 -left-12 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700"></div>
+                                
+                                <div className="text-[11px] font-black uppercase tracking-[0.25em] text-blue-400">Echoes Of Nepal</div>
+                                
+                                {/* QR Code Frame */}
+                                <div className="bg-white p-6 rounded-[2rem] shadow-inner shadow-black/40 border border-white/20 relative group-hover:scale-105 transition-transform duration-500">
+                                    <img 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/explore/vendors/${selectedListingForQr.id}`)}`} 
+                                        alt="Listing QR Code"
+                                        className="w-48 h-48 block"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <h4 className="text-lg font-black text-white line-clamp-1 italic">{selectedListingForQr.title}</h4>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{selectedListingForQr.listing_type} • {selectedListingForQr.district_slug || "Nepal"}</p>
+                                </div>
+                                
+                                <div className="py-2 px-4 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                                    {selectedListingForQr.price || "Contact for Price"}
+                                </div>
+                                
+                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider max-w-[200px] leading-relaxed">
+                                    Scan with your smartphone to read description & book instantly!
+                                </p>
+                            </div>
+                            
+                            <div className="w-full flex gap-3">
+                                <button 
+                                    onClick={() => {
+                                        const link = document.createElement("a");
+                                        link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${window.location.origin}/explore/vendors/${selectedListingForQr.id}`)}`;
+                                        link.download = `listing-qr-${selectedListingForQr.id}.png`;
+                                        link.target = "_blank";
+                                        link.click();
+                                    }}
+                                    className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95 animate-pulse"
+                                >
+                                    Download QR
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        const printWindow = window.open('', '_blank');
+                                        if (printWindow) {
+                                            printWindow.document.write(`
+                                                <html>
+                                                    <head>
+                                                        <title>Print QR Code - Echoes of Nepal</title>
+                                                        <style>
+                                                            body {
+                                                                font-family: system-ui, -apple-system, sans-serif;
+                                                                display: flex;
+                                                                align-items: center;
+                                                                justify-content: center;
+                                                                min-height: 100vh;
+                                                                margin: 0;
+                                                                background: #f8fafc;
+                                                            }
+                                                            .card {
+                                                                background: white;
+                                                                border: 2px solid #e2e8f0;
+                                                                border-radius: 24px;
+                                                                padding: 40px;
+                                                                text-align: center;
+                                                                max-width: 400px;
+                                                                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+                                                            }
+                                                            .title { font-size: 24px; font-weight: 800; margin: 20px 0 5px; color: #0f172a; }
+                                                            .type { font-size: 12px; font-weight: 600; text-transform: uppercase; tracking-letter: 0.1em; color: #64748b; margin-bottom: 20px; }
+                                                            .brand { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #2563eb; letter-spacing: 0.2em; }
+                                                            .price { font-size: 16px; font-weight: 700; color: #10b981; display: inline-block; background: #ecfdf5; padding: 6px 16px; border-radius: 12px; margin-bottom: 20px; }
+                                                            .scan { font-size: 11px; font-weight: 500; color: #94a3b8; line-height: 1.5; }
+                                                            img { border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; }
+                                                        </style>
+                                                    </head>
+                                                    <body>
+                                                        <div class="card">
+                                                            <div class="brand">Echoes Of Nepal</div>
+                                                            <div style="margin-top: 30px;">
+                                                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`${window.location.origin}/explore/vendors/${selectedListingForQr.id}`)}" width="250" height="250" />
+                                                            </div>
+                                                            <div class="title">${selectedListingForQr.title}</div>
+                                                            <div class="type">${selectedListingForQr.listing_type} • ${selectedListingForQr.district_slug || "Nepal"}</div>
+                                                            <div class="price">${selectedListingForQr.price || "Book Online"}</div>
+                                                            <div class="scan">Scan with your phone to view description, ratings and place booking instantly on Echoes of Nepal!</div>
+                                                        </div>
+                                                        <script>
+                                                            window.onload = function() {
+                                                                window.print();
+                                                                setTimeout(function() { window.close(); }, 500);
+                                                            }
+                                                        </script>
+                                                    </body>
+                                                </html>
+                                            `);
+                                            printWindow.document.close();
+                                        }
+                                    }}
+                                    className="py-3.5 px-5 bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                                >
+                                    Print Poster
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] grid place-items-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
                     <div className="bg-[#0a0f1d] border border-white/10 rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
@@ -457,19 +671,65 @@ export default function VendorListingsPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Thumbnail Image</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Listing Gallery</label>
                                     <div className="relative border-2 border-dashed border-white/10 rounded-[2rem] p-10 group hover:border-blue-500/30 transition-all text-center">
-                                        <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                        />
                                         <div className="space-y-4">
                                             <div className="w-16 h-16 bg-blue-600/10 text-blue-500 rounded-2xl grid place-items-center mx-auto group-hover:scale-110 transition-transform">
                                                 <Upload size={28} />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-sm font-black text-white italic">{imageFile ? imageFile.name : "Choose an aesthetic cover"}</p>
-                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">JPG, PNG or WEBP up to 5MB</p>
+                                                <p className="text-sm font-black text-white italic">
+                                                    {imageFiles.length > 0 ? `${imageFiles.length} new image${imageFiles.length > 1 ? "s" : ""} selected` : "Choose listing images"}
+                                                </p>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">JPG, PNG or WEBP. Select multiple files.</p>
                                             </div>
                                         </div>
                                     </div>
+
+                                    {imagePreviews.length > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    Gallery Preview
+                                                </p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-blue-400">
+                                                    {imagePreviews.length} image{imagePreviews.length > 1 ? "s" : ""}
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                {imagePreviews.map((image, index) => (
+                                                    <div key={image.key} className="rounded-2xl overflow-hidden border border-white/10 bg-black/30">
+                                                        <img src={image.url} alt={image.name} className="w-full h-28 object-cover" />
+                                                        <div className="p-3 space-y-2">
+                                                            <p className="text-[10px] text-white font-bold truncate">
+                                                                {index === 0 ? "Cover Image" : image.name}
+                                                            </p>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (image.existing) {
+                                                                        setExistingImageUrls((current) => current.filter((url) => url !== image.url));
+                                                                    } else {
+                                                                        setImageFiles((current) => current.filter((file) => `${file.name}-${file.size}-${file.lastModified}` !== image.key));
+                                                                    }
+                                                                }}
+                                                                className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-4 py-4 px-6 bg-white/[0.02] border border-white/5 rounded-2xl">
