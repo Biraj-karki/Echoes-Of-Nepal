@@ -11,11 +11,11 @@ export default function HeroSection() {
     <section className="relative overflow-hidden py-24 lg:py-32">
       <div className="absolute inset-0">
         <img
-          src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=2000"
-          alt="Himalayan Mountains"
-          className="h-full w-full object-cover opacity-25"
+          src="/mountain.jpg"
+          alt="Nepal mountain landscape"
+          className="h-full w-full object-cover object-center opacity-35"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/40 via-[#020617]/70 to-[#020617]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020617]/30 via-[#020617]/68 to-[#020617]" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6">
@@ -66,7 +66,7 @@ export default function HeroSection() {
           <div className="eon-surface-strong overflow-hidden">
             <div className="relative aspect-[4/5]">
               <img
-                src="/hero-nepal.jpg"
+                src="/mountain.jpg"
                 alt="Echoes of Nepal preview"
                 className="h-full w-full object-cover"
               />

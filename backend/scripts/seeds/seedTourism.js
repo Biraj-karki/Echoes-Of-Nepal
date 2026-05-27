@@ -1,4 +1,4 @@
-import pool from "./config/db.js";
+import pool from "../../config/db.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const mockDataPath = path.join(__dirname, "../frontend/src/data/mockDistricts.json");
+const mockDataPath = path.join(__dirname, "../../frontend/src/data/mockDistricts.json");
 const mockDistricts = JSON.parse(fs.readFileSync(mockDataPath, "utf-8"));
 
 async function seed() {

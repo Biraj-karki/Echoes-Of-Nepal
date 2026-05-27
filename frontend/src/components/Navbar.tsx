@@ -63,7 +63,7 @@ export default function Navbar() {
             <div className="text-sm font-black tracking-tight text-white group-hover:text-blue-300 transition-colors">
               {t("brand.name")}
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.32em] text-slate-500">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               {t("brand.tagline")}
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function Navbar() {
             ) : null
           ) : (
             <div className="relative ml-1 group">
-              <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-200 transition-colors group-hover:border-white/20 group-hover:bg-white/8">
+                <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-slate-200 transition-colors group-hover:border-white/20 group-hover:bg-white/8">
                 {t("nav.forVendors")}
               </button>
               <div className="absolute left-0 top-full mt-2 w-52 overflow-hidden rounded-2xl border border-white/10 bg-[#0f172a] shadow-2xl opacity-0 invisible scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:visible group-hover:scale-100">

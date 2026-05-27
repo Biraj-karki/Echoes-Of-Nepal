@@ -33,7 +33,7 @@ export default function CallToAction() {
 
           <Link
             href="/dashboard"
-            className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-black uppercase tracking-[0.18em] text-slate-950 transition-all hover:bg-slate-200"
+            className="mt-8 inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full bg-blue-600 px-7 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500"
           >
             {t("cta.button")}
             <ArrowRight size={18} />

@@ -1,4 +1,4 @@
-import pool from "./config/db.js";
+import pool from "../../config/db.js";
 
 const districtsByProvince = {
     "Koshi Province": ["Bhojpur", "Dhankuta", "Ilam", "Jhapa", "Khotang", "Morang", "Okhaldhunga", "Panchthar", "Sankhuwasabha", "Solukhumbu", "Sunsari", "Taplejung", "Terhathum", "Udayapur"],

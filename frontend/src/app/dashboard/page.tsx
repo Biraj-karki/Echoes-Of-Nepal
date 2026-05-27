@@ -13,12 +13,13 @@ import {
   TrendingUp, 
   LayoutGrid, 
   Compass, 
-  Plus 
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import StoryCard from "@/components/StoryCard";
 import { Story } from "@/components/StoryCard";
 import CreateStory from "@/components/CreateStory";
+import { API_BASE } from "@/lib/api";
 
 type FilterType = "recent" | "popular" | "all";
 
@@ -39,11 +40,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const filterRef = useRef<HTMLDivElement>(null);
-
-  const API_BASE = useMemo(
-    () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000",
-    []
-  );
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const scrollYRef = useRef(0);
 
   const [stories, setStories] = useState<Story[]>([]);
   const [fetchingStories, setFetchingStories] = useState(false);
@@ -57,7 +55,6 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [showFilterBar, setShowFilterBar] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   // comments state
   const [openComments, setOpenComments] = useState<Set<number>>(new Set());
@@ -76,16 +73,16 @@ export default function DashboardPage() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 200) {
+      if (currentScrollY > scrollYRef.current && currentScrollY > 200) {
         setShowFilterBar(false);
       } else {
         setShowFilterBar(true);
       }
-      setLastScrollY(currentScrollY);
+      scrollYRef.current = currentScrollY;
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   // Click outside filter menu
   useEffect(() => {
@@ -266,43 +263,77 @@ export default function DashboardPage() {
   }, [stories, filter]);
 
   if (loading || !user) {
-    return <div className="min-h-screen grid place-items-center bg-[#020617] text-slate-500 font-black italic uppercase tracking-[0.4em] animate-pulse">Syncing Echoes...</div>;
+    return (
+      <div className="min-h-screen grid place-items-center bg-[#020617] text-slate-500">
+        <div className="flex flex-col items-center gap-5 text-center">
+          <div className="h-14 w-14 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.45em] text-slate-500">Syncing Echoes</p>
+            <p className="mt-2 text-sm text-slate-400">Preparing your travel feed...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white pb-32">
-      <main className="max-w-4xl mx-auto px-6">
-        
-        {/* HERO TITLE SECTION */}
-        <div className="pt-16 pb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-white/5 mb-12">
-            <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[10px] font-black tracking-widest text-blue-400 uppercase">
-                    <Mountain size={10} /> The Soul of Nepal
+    <div className="min-h-screen bg-[#020617] text-white pb-24">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <section className="pt-8 sm:pt-12">
+          <div className="rounded-[2rem] border border-white/5 bg-white/[0.03] p-5 shadow-2xl backdrop-blur-xl sm:p-7 lg:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl space-y-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                  <Mountain size={12} /> The Soul of Nepal
                 </div>
-                <h1 className="text-5xl font-bold tracking-tight text-white">
-                  Journey Echoes
-                </h1>
-                <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-xl italic opacity-80">
-                  Traverse raw landscapes and hidden narratives. Every coordinate has a story.
-                </p>
+                <div className="space-y-3">
+                  <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                    Journey Echoes
+                  </h1>
+                  <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                    A lighter, cleaner story feed for travelers. Browse community posts, share your own memories, and keep the journey flowing.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/[0.03] px-3 py-2">
+                    <Sparkles size={12} className="text-emerald-400" />
+                    Live stories
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/[0.03] px-3 py-2">
+                    <Compass size={12} className="text-blue-400" />
+                    Travel notes
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+                <Button
+                  variant="secondary"
+                  onClick={fetchStories}
+                  disabled={fetchingStories}
+                  className="justify-center lg:min-w-[180px]"
+                  size="lg"
+                >
+                  <RefreshCcw size={16} className={fetchingStories ? "mr-2 animate-spin" : "mr-2"} />
+                  {fetchingStories ? "Syncing..." : "Refresh Feed"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="justify-center lg:min-w-[180px]"
+                  size="lg"
+                >
+                  <Plus size={16} className="mr-2" />
+                  Share a Story
+                </Button>
+              </div>
             </div>
+          </div>
+        </section>
 
-            <Button
-                variant="secondary"
-                onClick={fetchStories}
-                disabled={fetchingStories}
-                className="lg:mb-1 shrink-0 px-8"
-                size="lg"
-            >
-                <RefreshCcw size={16} className={fetchingStories ? "animate-spin mr-2" : "mr-2 text-blue-400 group-hover:rotate-180 transition-transform duration-700"} />
-                {fetchingStories ? "Syncing..." : "Sync Journeys"}
-            </Button>
-        </div>
-
-        {/* FEEDBACK */}
         {(errorMsg || successMsg) && (
-          <div className={`mb-12 p-5 rounded-2xl border backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-500 text-center ${errorMsg ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
-            <p className="text-sm font-bold flex items-center justify-center gap-2">
+          <div className={`mt-6 rounded-2xl border px-4 py-3 ${errorMsg ? 'border-red-500/20 bg-red-500/10 text-red-300' : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'}`}>
+            <p className="flex items-center gap-2 text-sm font-bold">
               <Sparkles size={16} />
               {errorMsg || successMsg}
             </p>
@@ -310,22 +341,22 @@ export default function DashboardPage() {
         )}
 
         {pendingDeleteId && (
-          <div className="mb-12 p-5 rounded-2xl border border-red-500/20 bg-red-500/10 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm font-bold text-red-300 uppercase tracking-widest">Confirm Story Deletion</p>
-                <p className="text-sm text-slate-300 mt-1">Delete this snapshot from history and remove its uploaded media?</p>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-red-300">Confirm Story Deletion</p>
+                <p className="mt-1 text-sm text-slate-300">Delete this story and its media?</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setPendingDeleteId(null)}
-                  className="px-5 py-2.5 rounded-2xl border border-white/10 text-slate-300 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all"
+                  className="rounded-xl border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/5"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteStory}
-                  className="px-5 py-2.5 rounded-2xl bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-500 transition-all"
+                  className="rounded-xl bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-red-500"
                 >
                   Delete
                 </button>
@@ -334,80 +365,85 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* MAIN FEED */}
-        <div className="flex flex-col gap-12">
-          
-          {/* FILTER BAR */}
-          <div className={`flex items-center justify-between p-2 bg-slate-900/60 border border-white/5 rounded-2xl sticky top-24 z-20 backdrop-blur-2xl shadow-2xl transition-all duration-500 ${showFilterBar ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}>
+        <div className="mt-6">
+          <div
+            ref={filterBarRef}
+            className={`sticky top-4 z-20 rounded-2xl border border-white/5 bg-slate-950/80 p-2 backdrop-blur-2xl transition-all duration-500 ${showFilterBar ? 'translate-y-0 opacity-100' : '-translate-y-24 opacity-0 pointer-events-none'}`}
+          >
+            <div className="flex items-center justify-between gap-3">
               <div className="relative" ref={filterRef}>
-                <button 
+                <button
                   onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
-                  className="flex items-center gap-3 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-300 transition-all active:scale-95"
+                  className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.04] px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/10 active:scale-95"
                 >
-                  <Filter size={14} className="text-blue-500" />
-                  <span>{filter} Stories</span>
+                  <Filter size={14} className="text-blue-400" />
+                  <span>{filter} stories</span>
                   <ChevronDown size={14} className={`transition-transform duration-300 ${isFilterMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isFilterMenuOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900 border border-white/10 rounded-2xl shadow-3xl backdrop-blur-2xl p-2 animate-in fade-in slide-in-from-top-2 duration-300 z-30">
-                    <FilterOption active={filter === 'recent'} onClick={() => { setFilter('recent'); setIsFilterMenuOpen(false); }} label="Recent" icon={<History size={14} />} />
-                    <FilterOption active={filter === 'popular'} onClick={() => { setFilter('popular'); setIsFilterMenuOpen(false); }} label="Popular" icon={<TrendingUp size={14} />} />
-                    <FilterOption active={filter === 'all'} onClick={() => { setFilter('all'); setIsFilterMenuOpen(false); }} label="All Stories" icon={<LayoutGrid size={14} />} />
+                  <div className="absolute left-0 top-full z-30 mt-2 w-52 rounded-2xl border border-white/10 bg-slate-950 p-2 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <FilterOption active={filter === "recent"} onClick={() => { setFilter("recent"); setIsFilterMenuOpen(false); }} label="Recent" icon={<History size={14} />} />
+                    <FilterOption active={filter === "popular"} onClick={() => { setFilter("popular"); setIsFilterMenuOpen(false); }} label="Popular" icon={<TrendingUp size={14} />} />
+                    <FilterOption active={filter === "all"} onClick={() => { setFilter("all"); setIsFilterMenuOpen(false); }} label="All Stories" icon={<LayoutGrid size={14} />} />
                   </div>
                 )}
               </div>
 
-              <div className="hidden sm:flex px-6 items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
-                  {stories.length} Echoes Discovered
+              <div className="hidden items-center gap-2 rounded-full border border-white/5 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-slate-500 sm:flex">
+                <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                {stories.length} echoes discovered
               </div>
+            </div>
           </div>
 
-          <div className="space-y-16">
-              {fetchingStories && stories.length === 0 ? (
-                  <div className="py-40 text-center text-slate-700 animate-pulse font-bold uppercase tracking-[0.4em] text-sm italic">Unfolding the Narrative...</div>
-              ) : filteredStories.length === 0 ? (
-                  <div className="py-40 text-center bg-white/[0.01] border border-dashed border-white/5 rounded-[4rem] p-16 flex flex-col items-center group">
-                      <div className="relative mb-8 opacity-20 group-hover:opacity-40 transition-opacity">
-                          <Mountain size={64} className="text-slate-400" />
-                          <Compass size={24} className="absolute -bottom-2 -right-2 text-blue-500 animate-spin-slow" />
-                      </div>
-                      <h3 className="text-3xl font-bold text-slate-600 mb-4 italic">The peaks are silent</h3>
-                      <p className="text-slate-500 font-medium text-sm max-w-xs mx-auto leading-relaxed">No echoes have been released here yet. Be the first to mark your trail.</p>
-                  </div>
-              ) : (
-                  filteredStories.map((story) => {
-                      const storyId = (story.id ?? story.story_id) as number;
-                      return (
-                          <StoryCard
-                              key={storyId}
-                              story={story}
-                              isOwner={isOwner(story)}
-                              onLike={handleLike}
-                              onDelete={handleDeleteStory}
-                              onToggleComments={toggleCommentsUI}
-                              commentsOpen={openComments.has(storyId)}
-                              loadingComments={loadingComments.has(storyId)}
-                              comments={commentsByStory[storyId] || []}
-                              commentDraft={commentDraft[storyId] || ""}
-                              setCommentDraft={(val) => setCommentDraft((p) => ({ ...p, [storyId]: val }))}
-                              onPostComment={handlePostComment}
-                          />
-                      );
-                  })
-              )}
+          <div className="mt-6 space-y-6">
+            {fetchingStories && stories.length === 0 ? (
+              <div className="rounded-[2rem] border border-white/5 bg-white/[0.02] py-20 text-center">
+                <div className="mx-auto mb-5 h-12 w-12 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
+                <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-500">Unfolding the narrative</p>
+              </div>
+            ) : filteredStories.length === 0 ? (
+              <div className="rounded-[2rem] border border-dashed border-white/10 bg-white/[0.02] p-10 text-center sm:p-14">
+                <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-white/5 bg-white/[0.03] text-slate-500">
+                  <Mountain size={34} />
+                  <Compass size={16} className="absolute -bottom-1 -right-1 text-blue-400" />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-white">The peaks are quiet</h3>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-400">
+                  No echoes have been released here yet. Be the first to mark your trail and start the conversation.
+                </p>
+                <div className="mt-7">
+                  <Button onClick={() => setIsCreateModalOpen(true)} size="lg">
+                    <Plus size={16} className="mr-2" />
+                    Publish your first story
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              filteredStories.map((story) => {
+                const storyId = (story.id ?? story.story_id) as number;
+                return (
+                  <StoryCard
+                    key={storyId}
+                    story={story}
+                    isOwner={isOwner(story)}
+                    onLike={handleLike}
+                    onDelete={handleDeleteStory}
+                    onToggleComments={toggleCommentsUI}
+                    commentsOpen={openComments.has(storyId)}
+                    loadingComments={loadingComments.has(storyId)}
+                    comments={commentsByStory[storyId] || []}
+                    commentDraft={commentDraft[storyId] || ""}
+                    setCommentDraft={(val) => setCommentDraft((p) => ({ ...p, [storyId]: val }))}
+                    onPostComment={handlePostComment}
+                  />
+                );
+              })
+            )}
           </div>
         </div>
       </main>
-
-      {/* CREATE STORY FAB */}
-      <button
-        onClick={() => setIsCreateModalOpen(true)}
-        className="fixed bottom-12 right-12 h-16 w-16 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/40 hover:scale-110 active:scale-95 transition-all duration-300 z-40 group"
-      >
-        <Plus size={32} className="group-hover:rotate-90 transition-transform duration-500" />
-      </button>
 
       {/* MODAL OVERLAY */}
       {isCreateModalOpen && (

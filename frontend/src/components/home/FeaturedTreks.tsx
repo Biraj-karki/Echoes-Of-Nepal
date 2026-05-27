@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MountainSnow, Calendar, Compass } from "lucide-react";
+import { MountainSnow, Calendar, Compass, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/app/LanguageProvider";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -67,12 +67,21 @@ export default function FeaturedTreks() {
     return (
         <section className="eon-section relative border-y border-white/5 bg-slate-950/40">
             <div className="mx-auto max-w-7xl px-6">
-                <div className="mb-14 text-center">
-                    <div className="eon-pill mx-auto mb-4">{t("treks.badge")}</div>
+                <div className="mb-14 flex flex-col gap-4 text-center">
+                    <div className="eon-pill mx-auto">{t("treks.badge")}</div>
                     <h2 className="eon-page-title">{t("treks.title")}</h2>
-                    <p className="eon-page-subtitle mx-auto mt-4 max-w-2xl">
+                    <p className="eon-page-subtitle mx-auto mt-1 max-w-2xl">
                         {t("treks.subtitle")}
                     </p>
+                    <div>
+                        <Link
+                            href="/treks"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.22em] text-slate-200 transition-all hover:border-white/20 hover:bg-white/10"
+                        >
+                            View all treks
+                            <ArrowRight size={14} />
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
