@@ -20,10 +20,19 @@ export async function createUser(name, email) {
   return result.rows[0];
 }
 
-export async function updateUser(id, name, email) {
+export async function updateUser(id, name, email, bio, location, profile_image) {
   const result = await pool.query(
-    "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *",
-    [name, email, id]
+    "UPDATE users SET name = $1, email = $2, bio = $3, location = $4, profile_image = $5 WHERE id = $6 RETURNING *",
+    [name, email, bio, location, profile_image, id]
+  );
+  return result.rows[0];
+}
+
+export async function updateUserProfile(id, data) {
+  const { name, bio, location, profile_image } = data;
+  const result = await pool.query(
+    "UPDATE users SET name = $1, bio = $2, location = $3, profile_image = $4 WHERE id = $5 RETURNING *",
+    [name, bio, location, profile_image, id]
   );
   return result.rows[0];
 }

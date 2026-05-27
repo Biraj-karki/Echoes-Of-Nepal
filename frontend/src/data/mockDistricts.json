@@ -1,0 +1,168 @@
+[
+  {
+    "id": "KATHMANDU",
+    "name": "Kathmandu",
+    "description": "The capital city and cultural heart of Nepal, featuring ancient temples, bustling streets, and vibrant heritage.",
+    "destinations": [
+      {
+        "name": "Swayambhunath Stupa (Monkey Temple)",
+        "category": "Temple",
+        "image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
+        "description": "An ancient religious architecture atop a hill in the Kathmandu Valley.",
+        "rating": 4.8
+      },
+      {
+        "name": "Pashupatinath Temple",
+        "category": "Temple",
+        "image": "https://images.unsplash.com/photo-1518386341908-1f19c836ccfe?auto=format&fit=crop&w=800&q=80",
+        "description": "One of the most sacred Hindu temples of Nepal located on the banks of the Bagmati River.",
+        "rating": 4.9
+      }
+    ],
+    "stories": [
+      {
+        "title": "A Walk Through Ason",
+        "author": "Priya Gurung",
+        "excerpt": "Ason is a vibrant open market where you can find everything from spices to traditional brass utensils. The energy here is infectious.",
+        "date": "2024-10-12",
+        "likes": 124
+      }
+    ],
+    "treks": []
+  },
+  {
+    "id": "KASKI",
+    "name": "Kaski (Pokhara)",
+    "description": "The gateway to the Annapurna Circuit, renowned for its serene lakes and spectacular mountain views.",
+    "destinations": [
+      {
+        "name": "Phewa Lake",
+        "category": "Lake",
+        "image": "https://images.unsplash.com/photo-1584988775039-38b81a8b9455?auto=format&fit=crop&w=800&q=80",
+        "description": "A beautiful freshwater lake reflecting the majestic Machhapuchhre peak.",
+        "rating": 4.9
+      },
+      {
+        "name": "Sarangkot Viewpoint",
+        "category": "Viewpoint",
+        "image": "https://images.unsplash.com/photo-1550508536-e02ff3cf4e0f?auto=format&fit=crop&w=800&q=80",
+        "description": "Famous for spectacular sunrise and sunset views over the Annapurna range.",
+        "rating": 4.8
+      }
+    ],
+    "stories": [
+      {
+        "title": "Boating under the Machhapuchhre",
+        "author": "James Anderson",
+        "excerpt": "There's nothing quite like rowing a colorful boat on Phewa Lake while looking at the fishtail mountain.",
+        "date": "2025-01-05",
+        "likes": 89
+      }
+    ],
+    "treks": [
+      {
+        "name": "Mardi Himal Trek",
+        "duration": "5-7 days",
+        "difficulty": "Moderate"
+      }
+    ]
+  },
+  {
+    "id": "SOLUKHUMBU",
+    "name": "Solukhumbu",
+    "description": "Home to Mount Everest, deep valleys, and the legendary Sherpa culture.",
+    "destinations": [
+      {
+        "name": "Everest Base Camp",
+        "category": "Trek",
+        "image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
+        "description": "The iconic destination for trekkers worldwide, standing at the foot of the highest mountain.",
+        "rating": 5.0
+      },
+      {
+        "name": "Namche Bazaar",
+        "category": "Village",
+        "image": "https://images.unsplash.com/photo-1544735716-11f8e21a21e4?auto=format&fit=crop&w=800&q=80",
+        "description": "The vibrant trading hub and final frontier town before higher Everest altitudes.",
+        "rating": 4.7
+      }
+    ],
+    "stories": [
+      {
+        "title": "Reaching EBC",
+        "author": "Sarah Jenkins",
+        "excerpt": "After 8 grueling days, seeing the Khumbu icefall and reaching Base Camp brought tears to my eyes.",
+        "date": "2024-11-20",
+        "likes": 341
+      }
+    ],
+    "treks": [
+      {
+        "name": "Everest Base Camp Trek",
+        "duration": "12-14 days",
+        "difficulty": "Hard"
+      }
+    ]
+  },
+  {
+    "id": "CHITWAN",
+    "name": "Chitwan",
+    "description": "A wildlife haven offering dense jungles, exotic safaris, and a rich biodiversity.",
+    "destinations": [
+      {
+        "name": "Chitwan National Park",
+        "category": "National Park",
+        "image": "https://images.unsplash.com/photo-1601614275525-4c0efad57e5e?auto=format&fit=crop&w=800&q=80",
+        "description": "A UNESCO World Heritage site known for its one-horned rhinos and Bengal tigers.",
+        "rating": 4.9
+      }
+    ],
+    "stories": [
+      {
+        "title": "A Close Encounter with a Rhino",
+        "author": "Rohit Thapa",
+        "excerpt": "During our jungle walk, we spotted a massive one-horned rhino just a few meters away. Terrifying yet magnificent!",
+        "date": "2023-12-15",
+        "likes": 204
+      }
+    ],
+    "treks": []
+  },
+  {
+    "id": "MUSTANG",
+    "name": "Mustang",
+    "description": "A mystical desert landscape lying behind the Himalayas, offering unique Tibetan culture and dramatic canyons.",
+    "destinations": [
+      {
+        "name": "Muktinath Temple",
+        "category": "Temple",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Muktinath_temple.jpg",
+        "description": "A highly venerated sacred place for both Hindus and Buddhists.",
+        "rating": 4.8
+      },
+      {
+        "name": "Lo Manthang",
+        "category": "Village",
+        "image": "https://images.unsplash.com/photo-1544735716-11f8e21a21e4?auto=format&fit=crop&w=800&q=80",
+        "description": "The walled capital of the former Kingdom of Lo.",
+        "rating": 4.9
+      }
+    ],
+    "stories": [
+      {
+        "title": "Riding through the endless desert",
+        "author": "Bikash Shrestha",
+        "excerpt": "Motorbiking to Muktinath was the most thrilling ride of my life. The winds, the dust, and the towering mountains are unforgettable.",
+        "date": "2024-05-18",
+        "likes": 512
+      }
+    ],
+    "treks": [
+      {
+        "name": "Upper Mustang Trek",
+        "duration": "10-12 days",
+        "difficulty": "Moderate"
+      }
+    ]
+  }
+]

@@ -7,12 +7,21 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { API_BASE } from "@/lib/api";
 
 type User = {
   id: number;
   name: string;
   email: string;
+  role?: string;
+  bio?: string;
+  location?: string;
+  profile_image?: string;
+  profileImage?: string; // Standardized field name for frontend
+  verification_status?: string;
+  business_name?: string;
 };
+
 
 type AuthContextType = {
   user: User | null;
@@ -39,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/auth/me", {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,7 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await res.json();
+      if (data.user) {
+        // Map backend snake_case to frontend camelCase for consistency
+        data.user.profileImage = data.user.profile_image;
+      }
       setUser(data.user);
+
     } catch (err) {
       console.error("refreshUser error", err);
       setUser(null);

@@ -128,17 +128,17 @@ export const login = async (req, res) => {
 
     const user = result.rows[0];
 
-    // block login until email verified (only for email/password accounts)
-    if (user.password_hash && user.verified === false) {
-      return res.status(403).json({
-        error: "Please verify your email before logging in.",
-      });
-    }
-
     if (!user.password_hash) {
       return res
         .status(400)
         .json({ error: "This account was created with Google login" });
+    }
+
+    // Block login for email/password accounts until email verification is completed.
+    if (user.verified === false) {
+      return res.status(403).json({
+        error: "Please verify your email before logging in.",
+      });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);
@@ -210,10 +210,24 @@ export const googleAuth = async (req, res) => {
 // --------- GET CURRENT USER (/me) ----------
 export const getMe = async (req, res) => {
   try {
-    const { id, name, email } = req.user;
-    res.json({ user: { id, name, email } });
+    const userId = req.user.id;
+    const result = await pool.query(
+      `SELECT u.id, u.name, u.email, u.bio, u.location, u.profile_image, 
+              v.verification_status, v.business_name
+       FROM users u 
+       LEFT JOIN vendors v ON u.id = v.owner_user_id 
+       WHERE u.id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ user: result.rows[0] });
   } catch (err) {
     console.error("GetMe error:", err.message);
     res.status(500).json({ error: "Server error fetching user" });
   }
 };
+
