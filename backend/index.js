@@ -27,10 +27,11 @@ import { setIO } from "./socket.js";
 
 const app = express();
 const httpServer = http.createServer(app);
+const frontendOrigin = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: frontendOrigin,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
   },
 });
@@ -55,7 +56,10 @@ io.on("connection", (socket) => {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: frontendOrigin,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // helps with form-data text fields too
 
