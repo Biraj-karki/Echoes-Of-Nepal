@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 //import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Fix default icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -54,6 +54,7 @@ function MapController({ selectedKey }: { selectedKey: string | null }) {
 }
 
 export default function LeafletMap({ destinations, onSelect }: LeafletMapProps) {
+    const [ready, setReady] = useState(false);
     // Center of Nepal roughly
     const defaultCenter: [number, number] = [28.3949, 84.1240];
 
@@ -62,6 +63,19 @@ export default function LeafletMap({ destinations, onSelect }: LeafletMapProps) 
         [26.347, 80.058], // Southwest
         [30.447, 88.201]  // Northeast
     ];
+
+    useEffect(() => {
+        const frame = requestAnimationFrame(() => setReady(true));
+        return () => cancelAnimationFrame(frame);
+    }, []);
+
+    if (!ready) {
+        return (
+            <div className="h-full w-full grid place-items-center bg-slate-900 text-slate-500">
+                <p>Loading Map...</p>
+            </div>
+        );
+    }
 
     return (
         <MapContainer

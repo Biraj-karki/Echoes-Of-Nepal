@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Manrope } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { AuthProvider } from "./AuthProvider";
 import { SocketProvider } from "./SocketProvider";
 import ConditionalRootWrapper from "./ConditionalRootWrapper";
 import { LanguageProvider } from "./LanguageProvider";
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-});
 
 export const metadata: Metadata = {
   title: "Echoes Of Nepal",
@@ -46,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en">
       <head>
         <meta name="application-name" content="Echoes of Nepal" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -55,7 +49,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#0f172a" />
         <Script src="https://khalti.com/static/khalti-checkout.js" strategy="lazyOnload" />
       </head>
-      <body className={manrope.className}>
+      <body>
         <AuthProvider>
           <LanguageProvider>
             <SocketProvider>

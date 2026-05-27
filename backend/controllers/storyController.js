@@ -78,21 +78,21 @@ export const getAllStories = async (req, res) => {
           )
         END AS liked_by_me,
 
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', sm.id,
-              'media_url', sm.media_url,
-              'media_type', sm.media_type
-            )
-          ) FILTER (WHERE sm.id IS NOT NULL),
-          '[]'
-        ) AS media
+        COALESCE(media.media, '[]'::json) AS media
 
       FROM stories s
       JOIN users u ON u.id = s.user_id
-      LEFT JOIN story_media sm ON sm.story_id = s.id
-      GROUP BY s.id, u.id
+      LEFT JOIN LATERAL (
+        SELECT json_agg(
+          json_build_object(
+            'id', sm.id,
+            'media_url', sm.media_url,
+            'media_type', sm.media_type
+          )
+        ) AS media
+        FROM story_media sm
+        WHERE sm.story_id = s.id
+      ) media ON true
       ORDER BY s.created_at DESC
       `,
       [userId]
@@ -100,8 +100,12 @@ export const getAllStories = async (req, res) => {
 
     res.json({ stories: result.rows });
   } catch (err) {
-    console.error("getAllStories error:", err.message);
-    res.status(500).json({ error: "Failed to fetch stories" });
+    console.error("getAllStories error:", err);
+    res.status(500).json({
+      error: "Failed to fetch stories",
+      details: err?.message || "Unknown database error",
+      code: err?.code || null,
+    });
   }
 };
 

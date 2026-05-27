@@ -210,12 +210,12 @@ export default function DistrictDetailPanel({ district, onClose }: DistrictDetai
     ] as const;
 
     return (
-        <div className="absolute top-0 right-0 h-full w-full sm:w-[400px] md:w-[450px] bg-[#0f172a]/95 backdrop-blur-2xl border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] z-50 flex flex-col transform transition-transform duration-300 ease-in-out">
+        <div className="fixed inset-x-0 bottom-0 top-auto h-[82vh] w-full overflow-hidden rounded-t-[2rem] border-t border-white/10 bg-[#0f172a]/95 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out sm:top-16 sm:right-0 sm:bottom-auto sm:left-auto sm:h-[calc(100vh-4rem)] sm:w-[400px] sm:rounded-none sm:border-t-0 sm:border-l md:w-[450px]">
             {/* Header */}
-            <div className="p-8 border-b border-white/5 relative shrink-0">
+            <div className="p-5 sm:p-8 border-b border-white/5 relative shrink-0">
                 <button 
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    className="absolute top-3 right-3 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
                 >
                     <X size={20} />
                 </button>
@@ -233,7 +233,7 @@ export default function DistrictDetailPanel({ district, onClose }: DistrictDetai
             </div>
 
             {/* Tabs */}
-            <div className="flex items-center px-4 pt-2 border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar bg-slate-900/40">
+            <div className="flex items-center gap-1 px-3 pt-2 border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar bg-slate-900/40 sm:px-4">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -241,7 +241,7 @@ export default function DistrictDetailPanel({ district, onClose }: DistrictDetai
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
-                            className={`flex items-center gap-2 px-4 py-4 border-b-2 transition-all whitespace-nowrap text-xs font-bold uppercase tracking-widest ${
+                            className={`flex items-center gap-2 px-3 py-3 sm:px-4 sm:py-4 border-b-2 transition-all whitespace-nowrap text-[10px] sm:text-xs font-bold uppercase tracking-widest ${
                                 isActive 
                                 ? "border-blue-500 text-blue-400 bg-blue-500/5" 
                                 : "border-transparent text-slate-400 hover:text-slate-200"
@@ -255,7 +255,7 @@ export default function DistrictDetailPanel({ district, onClose }: DistrictDetai
             </div>
 
             {/* Content Body */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar relative">
                 {activeTab === "overview" && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <div>
@@ -291,14 +291,25 @@ export default function DistrictDetailPanel({ district, onClose }: DistrictDetai
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                         {district.stories && district.stories.length > 0 ? (
                             district.stories.map((story, i) => (
-                                <div key={i} className="p-6 bg-slate-900/40 border border-white/5 rounded-2xl hover:bg-slate-800/60 hover:border-blue-500/30 transition-all cursor-pointer group shadow-sm">
-                                    <h4 className="font-bold text-white group-hover:text-blue-400 transition-colors text-lg leading-tight mb-2">{story.title}</h4>
+                                <div key={i} className="overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl hover:bg-slate-800/60 hover:border-blue-500/30 transition-all cursor-pointer group shadow-sm">
+                                    {(story.coverImage || story.image_url || story.media?.[0]?.media_url) && (
+                                        <div className="h-44 bg-slate-800 overflow-hidden">
+                                            <img
+                                                src={story.coverImage || story.image_url || story.media?.[0]?.media_url}
+                                                alt={story.title}
+                                                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="p-6">
+                                        <h4 className="font-bold text-white group-hover:text-blue-400 transition-colors text-lg leading-tight mb-2">{story.title}</h4>
                                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-4">
                                         <span>{story.author}</span>
                                         <span className="w-1 h-1 rounded-full bg-slate-700" />
                                         <span>{new Date(story.date).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-sm text-slate-400 line-clamp-3 leading-relaxed font-medium italic">"{story.excerpt}"</p>
+                                    </div>
                                 </div>
                             ))
                         ) : (

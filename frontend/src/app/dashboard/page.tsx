@@ -281,18 +281,18 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <section className="pt-8 sm:pt-12">
           <div className="rounded-[2rem] border border-white/5 bg-white/[0.03] p-5 shadow-2xl backdrop-blur-xl sm:p-7 lg:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
-                  <Mountain size={12} /> The Soul of Nepal
-                </div>
-                <div className="space-y-3">
-                  <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
-                    Journey Echoes
-                  </h1>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                    A lighter, cleaner story feed for travelers. Browse community posts, share your own memories, and keep the journey flowing.
-                  </p>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-3xl space-y-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-blue-300">
+                    <Mountain size={12} /> The Soul of Nepal
+                  </div>
+                  <div className="space-y-3">
+                    <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                      Journey Echoes
+                    </h1>
+                    <p className="max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                      A lighter, cleaner story feed for travelers. Browse community posts, share your own memories, and keep the journey flowing.
+                    </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/5 bg-white/[0.03] px-3 py-2">
@@ -306,14 +306,14 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Button
-                  variant="secondary"
-                  onClick={fetchStories}
-                  disabled={fetchingStories}
-                  className="justify-center lg:min-w-[180px]"
-                  size="lg"
-                >
+                <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
+                  <Button
+                    variant="secondary"
+                    onClick={fetchStories}
+                    disabled={fetchingStories}
+                    className="w-full justify-center lg:min-w-[180px]"
+                    size="lg"
+                  >
                   <RefreshCcw size={16} className={fetchingStories ? "mr-2 animate-spin" : "mr-2"} />
                   {fetchingStories ? "Syncing..." : "Refresh Feed"}
                 </Button>
@@ -337,31 +337,6 @@ export default function DashboardPage() {
               <Sparkles size={16} />
               {errorMsg || successMsg}
             </p>
-          </div>
-        )}
-
-        {pendingDeleteId && (
-          <div className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-red-300">Confirm Story Deletion</p>
-                <p className="mt-1 text-sm text-slate-300">Delete this story and its media?</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setPendingDeleteId(null)}
-                  className="rounded-xl border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteStory}
-                  className="rounded-xl bg-red-600 px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-red-500"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
@@ -446,6 +421,35 @@ export default function DashboardPage() {
       </main>
 
       {/* MODAL OVERLAY */}
+      {pendingDeleteId && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-xl"
+          onMouseDown={(e) => e.target === e.currentTarget && setPendingDeleteId(null)}
+        >
+          <div className="w-full max-w-md rounded-[2rem] border border-red-500/20 bg-[#0b1120] p-6 shadow-2xl">
+            <div className="space-y-3">
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-red-300">Confirm Story Deletion</p>
+              <h4 className="text-2xl font-black text-white tracking-tight">Delete this story?</h4>
+              <p className="text-sm leading-6 text-slate-300">This will remove the story and its media from your feed.</p>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="flex-1 rounded-2xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteStory}
+                className="flex-1 rounded-2xl bg-red-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isCreateModalOpen && (
         <div 
           className="fixed inset-0 z-[60] flex items-center justify-center p-6"

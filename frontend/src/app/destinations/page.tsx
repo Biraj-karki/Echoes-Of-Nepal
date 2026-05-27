@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, MapPin, Star, Filter, ChevronDown, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Search, MapPin, Star, ArrowLeft } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 
 type Destination = {
@@ -26,8 +25,7 @@ export default function DestinationsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("all");
-  const [sortBy, setSortBy] = useState<"featured" | "recent" | "rating">("featured");
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [sortBy] = useState<"featured" | "recent" | "rating">("featured");
 
   useEffect(() => {
     const fetchDestinations = async () => {
@@ -104,48 +102,16 @@ export default function DestinationsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-              <div className="relative w-full lg:w-[320px]">
-                <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" />
-                <input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search destinations"
-                  className="eon-input h-12 rounded-full pl-11 pr-4 text-sm"
-                />
-              </div>
-              <Button variant="outline" onClick={() => setShowSortMenu((p) => !p)} className="justify-center" size="md">
-                <Filter size={16} className="mr-2" />
-                {sortBy === "featured" ? "Featured first" : sortBy === "recent" ? "Newest first" : "Top rated"}
-                <ChevronDown size={14} className={`ml-2 transition-transform ${showSortMenu ? "rotate-180" : ""}`} />
-              </Button>
+            <div className="relative w-full lg:w-[320px]">
+              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" />
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search destinations"
+                className="eon-input h-12 rounded-full pl-11 pr-4 text-sm"
+              />
             </div>
           </div>
-
-          {showSortMenu && (
-            <div className="mt-4 inline-flex flex-wrap gap-2 rounded-2xl border border-white/5 bg-white/[0.03] p-2 backdrop-blur-xl">
-              {[
-                { key: "featured", label: "Featured" },
-                { key: "recent", label: "Newest" },
-                { key: "rating", label: "Top Rated" },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  onClick={() => {
-                    setSortBy(item.key as typeof sortBy);
-                    setShowSortMenu(false);
-                  }}
-                  className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest transition-all ${
-                    sortBy === item.key
-                      ? "bg-blue-500/15 text-blue-300 border border-blue-500/20"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 

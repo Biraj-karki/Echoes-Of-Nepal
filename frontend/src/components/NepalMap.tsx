@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
 
 interface NepalMapProps {
     selectedDistrictId: string | null;
@@ -20,6 +19,5 @@ const LeafletDistrictMap = dynamic(() => import("./LeafletDistrictMap"), {
 });
 
 export default function NepalMap(props: NepalMapProps) {
-    const Map = useMemo(() => LeafletDistrictMap, []);
-    return <Map {...props} />;
+    return <LeafletDistrictMap {...props} />;
 }

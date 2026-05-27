@@ -147,29 +147,6 @@ export default function MyStoriesTab({ user }: { user?: any }) {
         </div>
       </div>
 
-      {pendingDeleteId && (
-        <div className="rounded-[2rem] border border-red-500/20 bg-red-500/10 px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-widest text-red-300">Confirm Story Deletion</p>
-            <p className="text-sm text-slate-300 mt-1">Delete this story and its uploaded media from your history?</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setPendingDeleteId(null)}
-              className="px-5 py-2.5 rounded-2xl border border-white/10 text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmDelete}
-              className="px-5 py-2.5 rounded-2xl bg-red-600 text-white text-xs font-black uppercase tracking-widest hover:bg-red-500 transition-all"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
-      )}
-
       {deleteMsg && (
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3 text-xs font-medium text-emerald-300">
           {deleteMsg}
@@ -221,6 +198,37 @@ export default function MyStoriesTab({ user }: { user?: any }) {
           <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-500/20">
             Share a Story
           </button>
+        </div>
+      )}
+
+      {pendingDeleteId && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-xl"
+          onMouseDown={(e) => e.target === e.currentTarget && setPendingDeleteId(null)}
+        >
+          <div className="w-full max-w-md rounded-[2rem] border border-red-500/20 bg-[#0b1120] p-6 shadow-2xl">
+            <div className="space-y-3">
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-red-300">Confirm Story Deletion</p>
+              <h4 className="text-2xl font-black text-white tracking-tight">Delete this story?</h4>
+              <p className="text-sm leading-6 text-slate-300">
+                This will remove the story and its uploaded media from your history.
+              </p>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="flex-1 rounded-2xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-300 transition-all hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-2xl bg-red-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

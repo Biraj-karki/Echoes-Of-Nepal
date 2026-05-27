@@ -100,7 +100,8 @@ export default function ExplorePage() {
                 title: s.title,
                 author: s.user?.name || s.user_name || "Unknown Adventurer",
                 date: s.createdAt || s.created_at || new Date().toISOString(),
-                excerpt: s.description || "No description provided."
+                excerpt: s.description || "No description provided.",
+                coverImage: Array.isArray((s as any).media) ? (s as any).media[0]?.media_url : null
             }))
         : [];
 
@@ -140,15 +141,15 @@ export default function ExplorePage() {
               </div>
  
               {/* UI Overlay Container pointer-events-none so it doesn't block map */}
-              <div className="absolute inset-0 pointer-events-none z-10 flex justify-between p-8">
+              <div className="absolute inset-0 pointer-events-none z-10 flex flex-col justify-start gap-4 p-4 sm:flex-row sm:justify-between sm:p-8">
                   
                   {/* Floating Header */}
-                  <div className="pointer-events-auto w-full md:w-auto h-fit">
-                     <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 p-8 rounded-[2rem] shadow-2xl max-w-sm">
+                    <div className="pointer-events-auto w-full md:w-auto h-fit">
+                     <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 p-5 sm:p-8 rounded-[2rem] shadow-2xl max-w-none sm:max-w-sm">
                         <div className="inline-flex px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-[9px] font-black tracking-[0.2em] text-blue-400 uppercase mb-4">
                             Interactive Map
                         </div>
-                        <h1 className="text-3xl font-black text-white leading-tight mb-4">
+                        <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-4">
                             Explore <br />
                             <span className="italic">Echoes of Nepal</span>
                         </h1>
@@ -161,14 +162,12 @@ export default function ExplorePage() {
               </div>
               
               {/* Side Panel Overlay */}
-              <div className="absolute top-0 right-0 h-full pointer-events-auto z-50">
-                  {activeDistrict && (
-                      <DistrictDetailPanel 
-                          district={activeDistrict} 
-                          onClose={handleClosePanel} 
-                      />
-                  )}
-              </div>
+              {activeDistrict && (
+                  <DistrictDetailPanel 
+                      district={activeDistrict} 
+                      onClose={handleClosePanel} 
+                  />
+              )}
          </div>
     );
 }

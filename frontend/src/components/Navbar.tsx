@@ -54,16 +54,16 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/8 bg-[#020617]/82 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-11 w-11 overflow-hidden rounded-full border border-white/10 shadow-lg shadow-black/30 ring-1 ring-white/5">
+      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-4 py-3 sm:h-20 sm:px-5">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+          <div className="h-9 w-9 overflow-hidden rounded-full border border-white/10 shadow-lg shadow-black/30 ring-1 ring-white/5 sm:h-11 sm:w-11">
             <img src="/logo.png" alt="Echoes of Nepal Logo" className="h-full w-full object-cover" />
           </div>
           <div className="leading-tight">
             <div className="text-sm font-black tracking-tight text-white group-hover:text-blue-300 transition-colors">
               {t("brand.name")}
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            <div className="hidden sm:block text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
               {t("brand.tagline")}
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function Navbar() {
           )}
         </div>
 
-        <button className="md:hidden rounded-full border border-white/10 bg-white/5 p-3 text-slate-200" onClick={() => setMenuOpen(!menuOpen)}>
+        <button className="md:hidden rounded-full border border-white/10 bg-white/5 p-2.5 text-slate-200" onClick={() => setMenuOpen(!menuOpen)}>
           <div className="space-y-1.5">
             <span className={`block h-0.5 w-5 bg-current transition-transform ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
             <span className={`block h-0.5 w-5 bg-current transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
@@ -170,10 +170,11 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="border-t border-white/10 bg-[#020617] px-5 py-4 md:hidden">
+        <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-white/10 bg-[#020617] px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-2">
             <MobileNavLink href="/" label={t("nav.home")} onClick={() => setMenuOpen(false)} />
             <MobileNavLink href="/explore" label={t("nav.explore")} onClick={() => setMenuOpen(false)} />
+            <MobileNavLink href="/explore/vendors" label={t("nav.stays")} onClick={() => setMenuOpen(false)} />
             <MobileNavLink href="/dashboard" label={t("nav.feed")} onClick={() => setMenuOpen(false)} />
             <MobileNavLink href="/assistant" label={t("nav.assistant")} onClick={() => setMenuOpen(false)} />
             <MobileNavLink href="/my-bookings" label={t("nav.myBookings")} onClick={() => setMenuOpen(false)} />

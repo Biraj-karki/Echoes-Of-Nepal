@@ -12,6 +12,7 @@ interface LeafletDistrictMapProps {
 
 export default function LeafletDistrictMap({ selectedDistrictId, onSelectDistrict }: LeafletDistrictMapProps) {
     const [geoData, setGeoData] = useState<any>(null);
+    const [ready, setReady] = useState(false);
 
     // Center of Nepal
     const defaultCenter: [number, number] = [28.3949, 84.1240];
@@ -21,11 +22,22 @@ export default function LeafletDistrictMap({ selectedDistrictId, onSelectDistric
     ];
 
     useEffect(() => {
+        const frame = requestAnimationFrame(() => setReady(true));
         fetch("/data/nepal-districts.geojson")
             .then(res => res.json())
             .then(data => setGeoData(data))
             .catch(err => console.error("Error loading GeoJSON", err));
+
+        return () => cancelAnimationFrame(frame);
     }, []);
+
+    if (!ready) {
+        return (
+            <div className="h-full w-full grid place-items-center bg-[#020617] text-slate-500">
+                <p className="animate-pulse tracking-widest text-sm font-semibold uppercase">Loading Nepal Map...</p>
+            </div>
+        );
+    }
 
     const style = (feature: any) => {
         const isSelected = selectedDistrictId === feature.properties.DISTRICT;
@@ -99,7 +111,6 @@ export default function LeafletDistrictMap({ selectedDistrictId, onSelectDistric
             />
             {geoData && (
                 <GeoJSON 
-                    key={selectedDistrictId || 'base'} // Re-render trick sometimes needed for GeoJSON state, or use a custom hook to update layers. Re-rendering entire GeoJSON is easy for now.
                     data={geoData} 
                     style={style} 
                     onEachFeature={onEachFeature} 
