@@ -14,6 +14,17 @@ const generateToken = (user) => {
   );
 };
 
+const buildVerificationEmail = ({ name, verifyUrl }) => ({
+  subject: "Verify your Echoes Of Nepal account",
+  html: `
+    <p>Namaste ${name},</p>
+    <p>Please verify your Echoes Of Nepal account:</p>
+    <p><a href="${verifyUrl}" target="_blank">Verify Now</a></p>
+    <br/>
+    <p>If you did not create this account, please ignore this email.</p>
+  `,
+});
+
 // --------- REGISTER (email + password + email verification) ----------
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -56,20 +67,18 @@ export const register = async (req, res) => {
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-    await sendEmail({
+    // Send the verification email in the background so signup does not fail
+    // if SMTP is slow or temporarily unavailable.
+    void sendEmail({
       to: email,
-      subject: "Verify your Echoes Of Nepal account",
-      html: `
-        <p>Namaste ${name},</p>
-        <p>Please verify your Echoes Of Nepal account:</p>
-        <p><a href="${verifyUrl}" target="_blank">Verify Now</a></p>
-        <br/>
-        <p>If you did not create this account, please ignore this email.</p>
-      `,
+      ...buildVerificationEmail({ name, verifyUrl }),
+    }).catch((mailErr) => {
+      console.error("Verification email failed:", mailErr.message);
     });
 
-    res.json({
-      message: "Account created! Please check your email to verify your account.",
+    res.status(201).json({
+      message:
+        "Account created! Please check your email to verify your account. If the email does not arrive, use resend verification.",
     });
   } catch (err) {
     console.error("Register error:", err.message);
@@ -106,6 +115,56 @@ export const verifyEmail = async (req, res) => {
   } catch (err) {
     console.error("Verify email error:", err.message);
     res.status(500).json({ error: "Server error verifying email" });
+  }
+};
+
+export const resendVerificationEmail = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const result = await pool.query(
+      "SELECT id, name, verified FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Account not found" });
+    }
+
+    const user = result.rows[0];
+
+    if (user.verified) {
+      return res.status(400).json({ error: "Account is already verified" });
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    await pool.query(
+      "UPDATE users SET verification_token = $1 WHERE id = $2",
+      [verificationToken, user.id]
+    );
+
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    await sendEmail({
+      to: email,
+      ...buildVerificationEmail({
+        name: user.name || "Traveler",
+        verifyUrl,
+      }),
+    });
+
+    return res.json({
+      message: "Verification email sent successfully.",
+    });
+  } catch (err) {
+    console.error("Resend verification email error:", err.message);
+    return res.status(500).json({
+      error: "Failed to resend verification email",
+    });
   }
 };
 

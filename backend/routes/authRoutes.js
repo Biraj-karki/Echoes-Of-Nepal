@@ -6,6 +6,7 @@ import {
   googleAuth,
   getMe,
   verifyEmail,
+  resendVerificationEmail,
 } from "../controllers/authController.js";
 import {
   requestPasswordReset,
@@ -18,6 +19,7 @@ const router = express.Router();
 // Email/password auth
 router.post("/register", register);
 router.get("/verify-email", verifyEmail);
+router.post("/resend-verification", resendVerificationEmail);
 router.post("/login", login);
 
 // Google auth

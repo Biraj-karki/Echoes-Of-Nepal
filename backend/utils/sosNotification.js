@@ -8,11 +8,11 @@ import nodemailer from "nodemailer";
 // Get email configuration from environment
 const emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === "true",
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+        user: process.env.SMTP_USER || process.env.EMAIL_USER,
+        pass: process.env.SMTP_PASS || process.env.EMAIL_PASS
     }
 });
 
@@ -56,7 +56,7 @@ const sendEmailAlert = async (contact, alert) => {
         `;
 
         const result = await emailTransporter.sendMail({
-            from: process.env.SMTP_USER,
+            from: process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.EMAIL_USER,
             to: contact.email,
             subject: `🚨 EMERGENCY: ${emergencyType} - Echoes of Nepal`,
             html: emailContent
@@ -218,7 +218,7 @@ export const notifyRescueServices = async (alert) => {
         `;
 
         await emailTransporter.sendMail({
-            from: process.env.SMTP_USER,
+            from: process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.EMAIL_USER,
             to: adminEmail,
             subject: `${alertLevel} SOS - Immediate Attention Required`,
             html: emailContent
