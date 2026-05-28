@@ -9,7 +9,7 @@ const getSenderEmail = () =>
 const getSenderName = () =>
   process.env.BREVO_SENDER_NAME || "Echoes of Nepal";
 
-const sendWithBrevo = async ({ to, subject, html }) => {
+const sendWithBrevo = async ({ to, subject, html, text }) => {
   if (!process.env.BREVO_API_KEY) {
     return false;
   }
@@ -35,12 +35,13 @@ const sendWithBrevo = async ({ to, subject, html }) => {
     ],
     subject,
     htmlContent: html,
+    textContent: text,
   });
 
   return true;
 };
 
-const sendWithSmtp = async ({ to, subject, html }) => {
+const sendWithSmtp = async ({ to, subject, html, text }) => {
   const port = Number(process.env.SMTP_PORT || 587);
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
@@ -66,19 +67,20 @@ const sendWithSmtp = async ({ to, subject, html }) => {
     to,
     subject,
     html,
+    text,
   });
 };
 
-export const sendEmail = async ({ to, subject, html }) => {
+export const sendEmail = async ({ to, subject, html, text }) => {
   const senderEmail = getSenderEmail();
   if (!senderEmail) {
     throw new Error("A sender email is required for sending mail");
   }
 
   if (process.env.BREVO_API_KEY) {
-    await sendWithBrevo({ to, subject, html });
+    await sendWithBrevo({ to, subject, html, text });
     return;
   }
 
-  await sendWithSmtp({ to, subject, html });
+  await sendWithSmtp({ to, subject, html, text });
 };

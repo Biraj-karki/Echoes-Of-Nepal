@@ -19,10 +19,15 @@ const buildVerificationEmail = ({ name, verifyUrl }) => ({
   html: `
     <p>Namaste ${name},</p>
     <p>Please verify your Echoes Of Nepal account:</p>
-    <p><a href="${verifyUrl}" target="_blank">Verify Now</a></p>
+    <p>
+      <a href="${verifyUrl}" target="_blank" rel="noopener noreferrer">Verify Now</a>
+    </p>
+    <p>If the button above does not open, copy this link:</p>
+    <p><a href="${verifyUrl}" target="_blank" rel="noopener noreferrer">${verifyUrl}</a></p>
     <br/>
     <p>If you did not create this account, please ignore this email.</p>
   `,
+  text: `Namaste ${name},\n\nPlease verify your Echoes Of Nepal account:\n${verifyUrl}\n\nIf you did not create this account, please ignore this email.`,
 });
 
 // --------- REGISTER (email + password + email verification) ----------
