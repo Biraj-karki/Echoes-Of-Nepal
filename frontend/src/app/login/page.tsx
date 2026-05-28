@@ -25,6 +25,7 @@ function LoginPageContent() {
 
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [submitting, setSubmitting] = useState(false);
+  const [resendSubmitting, setResendSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [successMsg, setSuccessMsg] = useState<string>("");
 
@@ -38,6 +39,7 @@ function LoginPageContent() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [showRegPassword, setShowRegPassword] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
 
   const googleBtnId = useMemo(() => "googleSignInDiv", []);
 
@@ -183,6 +185,7 @@ function LoginPageContent() {
       setSuccessMsg(
         "Account created successfully. Please check your email to verify your account before logging in."
       );
+      setPendingVerificationEmail(regEmail);
       setActiveTab("login");
       setLoginEmail(regEmail);
       setRegName("");
@@ -194,6 +197,41 @@ function LoginPageContent() {
       setErrorMsg("Something went wrong while creating your account.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = (pendingVerificationEmail || loginEmail).trim();
+    if (!email) {
+      setErrorMsg("Please enter your email address first.");
+      return;
+    }
+
+    try {
+      setResendSubmitting(true);
+      setErrorMsg("");
+
+      const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data?.error || "Could not resend verification email.");
+        return;
+      }
+
+      setSuccessMsg(
+        "Verification email sent again. Please check your inbox and spam folder."
+      );
+      setPendingVerificationEmail(email);
+    } catch (err) {
+      console.error("Resend verification error", err);
+      setErrorMsg("Something went wrong while resending the verification email.");
+    } finally {
+      setResendSubmitting(false);
     }
   };
 
@@ -298,6 +336,22 @@ function LoginPageContent() {
             {successMsg && (
               <div className="mb-6 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
                 {successMsg}
+                {pendingVerificationEmail && (
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-emerald-200/80">
+                      Didn’t get it? You can resend the verification email.
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-9 px-4 text-xs font-bold"
+                      onClick={handleResendVerification}
+                      disabled={resendSubmitting}
+                    >
+                      {resendSubmitting ? "Resending..." : "Resend email"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 

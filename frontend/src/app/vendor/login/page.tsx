@@ -29,6 +29,8 @@ function VendorLoginPageContent() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [successMsg, setSuccessMsg] = useState<string>("");
+  const [resendSubmitting, setResendSubmitting] = useState(false);
 
   // login form
   const [loginEmail, setLoginEmail] = useState("");
@@ -40,6 +42,7 @@ function VendorLoginPageContent() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [showRegPassword, setShowRegPassword] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
 
   const googleBtnId = useMemo(() => "googleSignInDiv", []);
 
@@ -148,6 +151,7 @@ function VendorLoginPageContent() {
     e.preventDefault();
     setSubmitting(true);
     setErrorMsg("");
+    setSuccessMsg("");
 
     try {
       const res = await fetch(`${API_BASE}/api/auth/register`, {
@@ -162,7 +166,10 @@ function VendorLoginPageContent() {
         return;
       }
 
-      alert("Account created! Please check your email to verify your account.");
+      setSuccessMsg(
+        "Account created! Please check your email to verify your account before logging in."
+      );
+      setPendingVerificationEmail(regEmail);
       setActiveTab("login");
       setLoginEmail(regEmail);
     } catch (err) {
@@ -170,6 +177,41 @@ function VendorLoginPageContent() {
       setErrorMsg("Something went wrong while creating your account.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = (pendingVerificationEmail || loginEmail).trim();
+    if (!email) {
+      setErrorMsg("Please enter your email address first.");
+      return;
+    }
+
+    try {
+      setResendSubmitting(true);
+      setErrorMsg("");
+
+      const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data?.error || "Could not resend verification email.");
+        return;
+      }
+
+      setSuccessMsg(
+        "Verification email sent again. Please check your inbox and spam folder."
+      );
+      setPendingVerificationEmail(email);
+    } catch (err) {
+      console.error("Resend verification error", err);
+      setErrorMsg("Something went wrong while resending the verification email.");
+    } finally {
+      setResendSubmitting(false);
     }
   };
 
@@ -267,6 +309,27 @@ function VendorLoginPageContent() {
             {errorMsg && (
               <div className="mb-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold text-center animate-shake">
                 {errorMsg}
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="mb-6 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold">
+                {successMsg}
+                {pendingVerificationEmail && (
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-emerald-200/80 font-medium">
+                      Didn’t get it? Resend the verification email.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendSubmitting}
+                      className="px-4 py-2 rounded-lg bg-amber-500/15 border border-amber-500/20 text-amber-300 hover:text-white text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {resendSubmitting ? "Resending..." : "Resend email"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
