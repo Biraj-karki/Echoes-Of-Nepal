@@ -258,29 +258,6 @@ export default function StoryCard({
                 </div>
             )}
 
-            {/* GALLERY THUMBS */}
-            {mediaList.length > 1 && (
-                <div className="px-7 py-3 flex gap-3 overflow-x-auto no-scrollbar pb-6">
-                    {mediaList.slice(1).map((m, i) => (
-                        <button
-                            key={`${m.media_url || i}-${i}`}
-                            type="button"
-                            onClick={() => openViewer(i + 1)}
-                            className="h-20 aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shrink-0 opacity-40 hover:opacity-100 hover:scale-105 transition-all duration-500 shadow-xl"
-                        >
-                            {isVideo(m) ? (
-                                <video src={m.media_url} className="w-full h-full object-cover" muted playsInline />
-                            ) : (
-                                <img src={m.media_url} alt="Gallery" className="w-full h-full object-cover" />
-                            )}
-                        </button>
-                    ))}
-                    <div className="h-20 aspect-video rounded-2xl border border-dashed border-white/5 flex flex-col items-center justify-center shrink-0 opacity-20">
-                        <Compass size={16} />
-                    </div>
-                </div>
-            )}
-
             {/* ACTION CENTER */}
             <div className="px-7 py-6 mt-auto flex items-center justify-between border-t border-white/5 bg-white/[0.01]">
                 <div className="flex items-center gap-2">
