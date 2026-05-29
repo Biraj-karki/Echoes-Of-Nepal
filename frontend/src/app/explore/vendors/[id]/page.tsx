@@ -320,7 +320,6 @@ export default function VendorListingDetailPage() {
                                     </div>
                                 ))}
                             </div>
-                            <button className="mt-10 px-8 py-4 rounded-2xl border border-white/10 hover:border-white/30 transition-all text-xs font-black uppercase tracking-widest bg-transparent">Show all 32 amenities</button>
                         </section>
 
                         {/* Stories from this Place */}
