@@ -389,19 +389,9 @@ export default function StoryCard({
                             )}
 
                             {isVideo(viewerMedia) ? (
-                                <video
-                                    src={viewerMedia.media_url}
-                                    className="max-h-[80vh] w-full object-contain"
-                                    controls
-                                    autoPlay
-                                    playsInline
-                                />
+                                <video src={viewerMedia.media_url} className="max-h-[80vh] w-full object-contain" controls autoPlay playsInline />
                             ) : (
-                                <img
-                                    src={viewerMedia.media_url}
-                                    alt={story.title}
-                                    className="max-h-[80vh] w-full object-contain"
-                                />
+                                <img src={viewerMedia.media_url} alt={story.title} className="max-h-[80vh] w-full object-contain" />
                             )}
 
                             {mediaList.length > 1 && (

@@ -1,61 +1,70 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import ollama from "ollama";
 import pool from "../config/db.js";
+import {
+    createGeminiModel,
+    disableGeminiTemporarily,
+    getGeminiModelName,
+    isGeminiQuotaError,
+} from "../utils/gemini.js";
 
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
-const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) : null;
+const model = createGeminiModel();
 
 /**
  * Helper function to call AI (Ollama > Gemini > null)
  */
-const callAI = async (prompt, modelName = 'llama3') => {
+const callAI = async (prompt, modelName = "llama3") => {
     try {
-        const modelsToTry = [modelName, 'mistral', 'llama2'];
+        const modelsToTry = [modelName, "mistral", "llama2"];
         let lastError = null;
 
-        // Try Ollama models sequentially
-        for (const modelName of modelsToTry) {
+        for (const ollamaModel of modelsToTry) {
             try {
                 const ollamaResponse = await ollama.generate({
-                    model: modelName,
-                    prompt: prompt,
-                    stream: false
+                    model: ollamaModel,
+                    prompt,
+                    stream: false,
                 });
+
                 return {
                     text: ollamaResponse.response.trim(),
-                    source: `ollama (${modelName})`,
-                    success: true
+                    source: `ollama (${ollamaModel})`,
+                    success: true,
                 };
             } catch (err) {
                 lastError = err;
             }
         }
 
-        // Fall back to Gemini
         try {
-            if (!model) throw new Error("Gemini API not configured");
-            
+            if (!model) {
+                throw new Error("Gemini not configured or disabled");
+            }
+
             const result = await model.generateContent(prompt);
             const response = await result.response;
             return {
                 text: response.text().trim(),
-                source: 'gemini',
-                success: true
+                source: `gemini (${getGeminiModelName()})`,
+                success: true,
             };
         } catch (geminiError) {
+            if (isGeminiQuotaError(geminiError)) {
+                disableGeminiTemporarily("quota/rate limit");
+            }
+
             return {
                 text: null,
-                source: 'none',
+                source: "none",
                 success: false,
-                error: `Ollama: ${lastError?.message || 'Unknown'}, Gemini: ${geminiError.message}`
+                error: `Ollama: ${lastError?.message || "Unknown"}, Gemini: ${geminiError.message}`,
             };
         }
     } catch (err) {
         return {
             text: null,
-            source: 'error',
+            source: "error",
             success: false,
-            error: err.message
+            error: err.message,
         };
     }
 };
@@ -73,10 +82,10 @@ export const generateItinerary = async (req, res) => {
         }
 
         const prompt = `Create a detailed ${duration}-day travel itinerary in Nepal with these details:
-Origin: ${origin || 'Kathmandu'}
+Origin: ${origin || "Kathmandu"}
 Destination: ${destination}
-Budget: ${budget || 'moderate'} (budget-friendly, moderate, or luxury)
-Interests: ${interests || 'general tourism'}
+Budget: ${budget || "moderate"} (budget-friendly, moderate, or luxury)
+Interests: ${interests || "general tourism"}
 
 Return a JSON object with this structure:
 {
@@ -87,7 +96,7 @@ Return a JSON object with this structure:
       "day": 1,
       "title": "Arrival and Orientation",
       "morning": "activity description",
-      "afternoon": "activity description", 
+      "afternoon": "activity description",
       "evening": "activity description",
       "meals": "recommended restaurants/costs",
       "hotel_suggestion": "type and estimated cost",
@@ -103,37 +112,36 @@ Return a JSON object with this structure:
 Return ONLY valid JSON, no markdown.`;
 
         const aiResponse = await callAI(prompt);
-        
+
         if (!aiResponse.success || !aiResponse.text) {
-            return res.json({ 
-                error: "AI services unavailable, returning template", 
+            return res.json({
+                error: "AI services unavailable, returning template",
                 itinerary: {
                     title: `${duration}-Day ${destination} Itinerary`,
                     overview: "Unable to generate. Please try again.",
                     days: [],
-                    recommendation: "Try again in a few moments or contact support"
+                    recommendation: "Try again in a few moments or contact support",
                 },
                 aiSource: aiResponse.source,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
 
         try {
-            // Clean and parse JSON
             const cleanText = aiResponse.text.replace(/```json/g, "").replace(/```/g, "").trim();
             const itinerary = JSON.parse(cleanText);
-            
+
             return res.json({
                 itinerary,
                 aiSource: aiResponse.source,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         } catch (parseError) {
             return res.json({
                 itinerary: { raw: aiResponse.text },
                 aiSource: aiResponse.source,
                 parseNote: "Raw response returned (not valid JSON)",
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
         }
     } catch (err) {
@@ -156,7 +164,7 @@ export const tagStory = async (req, res) => {
 
         const prompt = `Analyze this travel story and extract metadata:
 
-Title: ${title || 'Untitled'}
+Title: ${title || "Untitled"}
 Content: ${content.substring(0, 500)}...
 
 Return a JSON object with:
@@ -174,34 +182,34 @@ Return a JSON object with:
 Return ONLY valid JSON.`;
 
         const aiResponse = await callAI(prompt);
-        
+
         if (!aiResponse.success || !aiResponse.text) {
-            return res.json({ 
+            return res.json({
                 metadata: {
                     suggested_tags: ["story"],
                     districts_mentioned: [],
                     season: "anytime",
                     budget_category: "unknown",
-                    story_type: "general"
+                    story_type: "general",
                 },
                 aiSource: aiResponse.source,
-                message: "Using default tagging (AI unavailable)"
+                message: "Using default tagging (AI unavailable)",
             });
         }
 
         try {
             const cleanText = aiResponse.text.replace(/```json/g, "").replace(/```/g, "").trim();
             const metadata = JSON.parse(cleanText);
-            
+
             res.json({
                 metadata,
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         } catch (parseError) {
             res.json({
                 metadata: { raw: aiResponse.text },
                 aiSource: aiResponse.source,
-                parseNote: "Raw response returned"
+                parseNote: "Raw response returned",
             });
         }
     } catch (err) {
@@ -224,7 +232,7 @@ export const enhanceDescription = async (req, res) => {
 
         const prompt = `Improve this ${vendorType} business description to be more engaging and SEO-friendly for Nepal tourism:
 
-Business Name: ${businessName || 'Tourism Business'}
+Business Name: ${businessName || "Tourism Business"}
 Current Description: ${currentDesc}
 
 Create an enhanced version that:
@@ -245,32 +253,32 @@ Return as JSON:
 Return ONLY valid JSON.`;
 
         const aiResponse = await callAI(prompt);
-        
+
         if (!aiResponse.success || !aiResponse.text) {
-            return res.json({ 
+            return res.json({
                 enhancement: {
                     enhanced_description: currentDesc,
                     suggested_keywords: [],
                     seo_tips: ["Add more keywords", "Include location names"],
-                    call_to_action: "Book now"
+                    call_to_action: "Book now",
                 },
                 aiSource: aiResponse.source,
-                message: "AI unavailable - original description returned"
+                message: "AI unavailable - original description returned",
             });
         }
 
         try {
             const cleanText = aiResponse.text.replace(/```json/g, "").replace(/```/g, "").trim();
             const enhancement = JSON.parse(cleanText);
-            
+
             res.json({
                 enhancement,
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         } catch (parseError) {
             res.json({
                 enhancement: { raw: aiResponse.text },
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         }
     } catch (err) {
@@ -285,7 +293,7 @@ Return ONLY valid JSON.`;
  */
 export const moderateContent = async (req, res) => {
     try {
-        const { text, type = 'story' } = req.body;
+        const { text, type = "story" } = req.body;
 
         if (!text) {
             return res.status(400).json({ error: "Text to moderate is required" });
@@ -305,7 +313,7 @@ Analyze for:
 Return as JSON:
 {
   "is_appropriate": true|false,
-  "safety_score": 0.0-1.0, // 1.0 = very safe
+  "safety_score": 0.0-1.0,
   "issues": ["issue1", "issue2"] or [],
   "suggestions": ["suggestion1"] or [],
   "requires_review": true|false
@@ -314,33 +322,33 @@ Return as JSON:
 Return ONLY valid JSON.`;
 
         const aiResponse = await callAI(prompt);
-        
+
         if (!aiResponse.success || !aiResponse.text) {
-            return res.json({ 
+            return res.json({
                 moderation: {
                     is_appropriate: true,
                     safety_score: 0.8,
                     issues: [],
                     suggestions: ["Please ensure all information is accurate"],
-                    requires_review: false
+                    requires_review: false,
                 },
                 aiSource: aiResponse.source,
-                message: "Using default safety check (AI unavailable)"
+                message: "Using default safety check (AI unavailable)",
             });
         }
 
         try {
             const cleanText = aiResponse.text.replace(/```json/g, "").replace(/```/g, "").trim();
             const moderation = JSON.parse(cleanText);
-            
+
             res.json({
                 moderation,
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         } catch (parseError) {
             res.json({
                 moderation: { raw: aiResponse.text },
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         }
     } catch (err) {
@@ -364,9 +372,9 @@ export const analyzePricing = async (req, res) => {
         const prompt = `Analyze the competitiveness of this Nepal tourism package pricing:
 
 Package Type: ${packageType}
-Vendor Type: ${vendorType || 'guide/homestay'}
+Vendor Type: ${vendorType || "guide/homestay"}
 Listed Price: USD ${packagePrice}
-Description: ${description || 'Not provided'}
+Description: ${description || "Not provided"}
 
 Consider:
 - Standard market rates for ${packageType} in Nepal
@@ -392,34 +400,34 @@ Return as JSON:
 Return ONLY valid JSON.`;
 
         const aiResponse = await callAI(prompt);
-        
+
         if (!aiResponse.success || !aiResponse.text) {
-            return res.json({ 
+            return res.json({
                 pricing_analysis: {
                     analysis: "Unable to analyze at this time",
                     market_range: { min: "Unknown", max: "Unknown", typical: "Unknown" },
                     verdict: "unknown",
                     recommendations: ["Check competitor pricing"],
                     market_position: "unknown",
-                    confidence: 0.0
+                    confidence: 0.0,
                 },
                 aiSource: aiResponse.source,
-                message: "AI unavailable - please refresh and try again"
+                message: "AI unavailable - please refresh and try again",
             });
         }
 
         try {
             const cleanText = aiResponse.text.replace(/```json/g, "").replace(/```/g, "").trim();
             const analysis = JSON.parse(cleanText);
-            
+
             res.json({
                 pricing_analysis: analysis,
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         } catch (parseError) {
             res.json({
                 pricing_analysis: { raw: aiResponse.text },
-                aiSource: aiResponse.source
+                aiSource: aiResponse.source,
             });
         }
     } catch (err) {
@@ -438,15 +446,12 @@ export const getAiStatus = async (req, res) => {
         let geminiStatus = "unavailable";
         let models = [];
 
-        // Check Ollama
         try {
             const testResponse = await callAI("Hello", "llama2");
-            if (testResponse.source === 'ollama') {
+            if (testResponse.source === "ollama") {
                 ollamaStatus = "active";
-                
-                // Try to get models list (if possible)
+
                 try {
-                    // This is a basic check - actual ollama library may vary
                     const response = await ollama.list();
                     models = response.models || [];
                 } catch (e) {
@@ -457,7 +462,6 @@ export const getAiStatus = async (req, res) => {
             ollamaStatus = "offline";
         }
 
-        // Check Gemini
         if (model) {
             geminiStatus = "configured";
         }
@@ -466,11 +470,11 @@ export const getAiStatus = async (req, res) => {
             status: {
                 ollama: ollamaStatus,
                 gemini: geminiStatus,
-                overall: ollamaStatus === 'active' ? 'optimal' : geminiStatus === 'configured' ? 'fallback-ready' : 'degraded'
+                overall: ollamaStatus === "active" ? "optimal" : geminiStatus === "configured" ? "fallback-ready" : "degraded",
             },
             installed_models: models || ["llama2", "mistral", "neural-chat"],
             timestamp: new Date().toISOString(),
-            recommendation: ollamaStatus === 'offline' ? "Please start Ollama with 'ollama serve'" : "System ready"
+            recommendation: ollamaStatus === "offline" ? "Please start Ollama with 'ollama serve'" : "System ready",
         });
     } catch (err) {
         console.error("Status check error:", err.message);
@@ -490,7 +494,7 @@ export const chatWithAi = async (req, res) => {
             return res.status(400).json({ error: "Message is required" });
         }
 
-        const systemPrompt = `You are a professional Nepal travel assistant named "Echoes of Nepal Assistant". 
+        const systemPrompt = `You are a professional Nepal travel assistant named "Echoes of Nepal Assistant".
 Your goal is to help users plan trips, find treks, and explore the culture and nature of Nepal.
 
 Guidelines:
@@ -503,21 +507,20 @@ Guidelines:
 
 User Message: ${message}`;
 
-        // Construct full prompt if history exists (simple version)
         let fullPrompt = systemPrompt;
         if (history.length > 0) {
-            const historyText = history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+            const historyText = history.map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`).join("\n");
             fullPrompt = `${systemPrompt}\n\nPrevious conversation:\n${historyText}\n\nAssistant:`;
         }
 
-        const aiResponse = await callAI(fullPrompt, 'llama3');
+        const aiResponse = await callAI(fullPrompt, "llama3");
 
         if (!aiResponse.success || !aiResponse.text) {
             return res.json({
                 message: aiResponse.error || "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
                 error: aiResponse.error,
                 aiSource: aiResponse.source,
-                success: false
+                success: false,
             });
         }
 
@@ -525,20 +528,33 @@ User Message: ${message}`;
         let extractedDestinations = [];
         let extractedNames = new Set();
 
-        // 1. Primary Extraction: Extract destinations from [[Name1, Name2]] format
         const destMatches = responseText.matchAll(/\[\[(.*?)\]\]/g);
         for (const match of destMatches) {
             if (match[1]) {
-                match[1].split(',').forEach(s => extractedNames.add(s.trim()));
+                match[1].split(",").forEach((s) => extractedNames.add(s.trim()));
             }
         }
-        
-        // Remove the [[...]] tags from the visible text
+
         responseText = responseText.replace(/\[\[.*?\]\]/g, "").trim();
 
-        // 2. Fallback Extraction: If AI forgot tags, search for known destination names in the text
-        const knownLocations = ["Pokhara", "Phewa Lake", "Mustang", "Upper Mustang", "Lumbini", "Everest Base Camp", "Annapurna Base Camp", "Rara Lake", "Chitwan National Park", "Bandipur", "Ghandruk", "Ilam", "Janaki Temple", "Bhaktapur", "Mardi Himal"];
-        
+        const knownLocations = [
+            "Pokhara",
+            "Phewa Lake",
+            "Mustang",
+            "Upper Mustang",
+            "Lumbini",
+            "Everest Base Camp",
+            "Annapurna Base Camp",
+            "Rara Lake",
+            "Chitwan National Park",
+            "Bandipur",
+            "Ghandruk",
+            "Ilam",
+            "Janaki Temple",
+            "Bhaktapur",
+            "Mardi Himal",
+        ];
+
         if (extractedNames.size === 0) {
             for (const loc of knownLocations) {
                 if (responseText.includes(loc)) {
@@ -547,20 +563,17 @@ User Message: ${message}`;
             }
         }
 
-        // Query DB for these destinations
         for (const name of extractedNames) {
             const pattern = `%${name}%`;
-            
-            // Search destinations
+
             const destRes = await pool.query(
                 "SELECT id, name, image, description, entry_fee as price, category, rating, 'destination' as type FROM destinations WHERE name ILIKE $1 LIMIT 1",
                 [pattern]
             );
-            
+
             if (destRes.rows.length > 0) {
                 extractedDestinations.push(destRes.rows[0]);
             } else {
-                // Search treks
                 const trekRes = await pool.query(
                     "SELECT id, name, image, description, 'Varies' as price, 'trek' as category, '4.8' as rating, 'trek' as type FROM treks WHERE name ILIKE $1 LIMIT 1",
                     [pattern]
@@ -571,16 +584,14 @@ User Message: ${message}`;
             }
         }
 
-        // Remove duplicates just in case
-        const uniqueDestinations = Array.from(new Map(extractedDestinations.map(item => [item.id, item])).values());
+        const uniqueDestinations = Array.from(new Map(extractedDestinations.map((item) => [item.id, item])).values());
 
         res.json({
             message: responseText,
-            destinations: uniqueDestinations.slice(0, 4), // Limit to 4 cards to keep UI clean
+            destinations: uniqueDestinations.slice(0, 4),
             aiSource: aiResponse.source,
-            success: true
+            success: true,
         });
-
     } catch (err) {
         console.error("Chat AI error:", err.message);
         res.status(500).json({ error: "Failed to process chat" });
