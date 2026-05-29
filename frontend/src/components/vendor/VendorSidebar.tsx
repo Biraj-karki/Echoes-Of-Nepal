@@ -26,7 +26,7 @@ export default function VendorSidebar() {
     const isActive = (href: string) => pathname === href;
 
     return (
-        <aside className="w-64 bg-slate-900 border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 z-[60] transition-all">
+        <aside className="hidden md:flex w-64 bg-slate-900 border-r border-white/5 flex-col h-screen fixed left-0 top-0 z-[60] transition-all">
             <div className="p-6 border-b border-white/5">
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="h-10 w-10 rounded-full overflow-hidden border border-white/10 group-hover:border-blue-500/50 transition-all duration-300 shadow-lg bg-blue-600 flex items-center justify-center">

@@ -1,14 +1,15 @@
 "use client";
 
 import { useAuth } from "@/app/AuthProvider";
-import { Search, MapPin, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { Search, MapPin, CheckCircle, AlertCircle, XCircle, Menu } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 interface VendorHeaderProps {
     vendor: any;
+    onMenuClick?: () => void;
 }
 
-export default function VendorHeader({ vendor }: VendorHeaderProps) {
+export default function VendorHeader({ vendor, onMenuClick }: VendorHeaderProps) {
     const { user } = useAuth();
     
     const getStatusBadge = (status: string) => {
@@ -35,11 +36,19 @@ export default function VendorHeader({ vendor }: VendorHeaderProps) {
     };
 
     return (
-        <header className="h-20 border-b border-white/5 bg-[#020617]/50 backdrop-blur-xl flex items-center justify-between px-8 sticky top-0 z-[50]">
+        <header className="h-20 border-b border-white/5 bg-[#020617]/50 backdrop-blur-xl flex items-center justify-between px-4 sm:px-8 sticky top-0 z-[50]">
             <div className="flex items-center gap-6">
+                <button
+                    type="button"
+                    onClick={onMenuClick}
+                    className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-colors"
+                    aria-label="Open vendor menu"
+                >
+                    <Menu size={18} />
+                </button>
                 <div>
                     <h2 className="text-lg font-black text-white tracking-tight leading-none">{vendor?.business_name || "Business Name"}</h2>
-                    <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
                             <MapPin size={10} /> {vendor?.district_slug || "Location"}
                         </p>
@@ -48,7 +57,7 @@ export default function VendorHeader({ vendor }: VendorHeaderProps) {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
                 <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
                     <Search size={14} className="text-slate-500" />
                     <input 

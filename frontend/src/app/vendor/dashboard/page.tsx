@@ -223,11 +223,12 @@ export default function VendorDashboardOverview() {
 
                 {/* Quick Actions / Tips */}
                 <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[2.5rem] shadow-xl shadow-blue-600/10 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-                        <h4 className="text-xl font-black text-white mb-2 italic">Ready to scale?</h4>
-                        <p className="text-blue-100/80 text-sm leading-relaxed mb-6">Promote your homestay or guide services on the main Echoes of Nepal interactive map.</p>
-                        <Link href="/vendor/listings" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-all">
+                    <div className="bg-[linear-gradient(180deg,rgba(30,41,59,0.95),rgba(15,23,42,0.96))] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-black/20 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_55%)]"></div>
+                        <div className="absolute top-0 right-0 w-28 h-28 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl opacity-70 group-hover:scale-125 transition-transform duration-700"></div>
+                        <h4 className="relative text-xl font-black text-white mb-2 italic">Ready to scale?</h4>
+                        <p className="relative text-slate-300 text-sm leading-relaxed mb-6">Promote your homestay or guide services on the main Echoes of Nepal interactive map.</p>
+                        <Link href="/vendor/listings" className="relative inline-flex items-center gap-2 px-5 py-2.5 bg-blue-500/15 text-blue-200 border border-blue-400/20 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-500/22 transition-all">
                             Add New Listing <Edit2 size={14} />
                         </Link>
                     </div>

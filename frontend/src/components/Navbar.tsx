@@ -180,9 +180,9 @@ export default function Navbar() {
             <MobileNavLink href="/my-bookings" label={t("nav.myBookings")} onClick={() => setMenuOpen(false)} />
           </nav>
           <div className="mt-4 border-t border-white/10 pt-4">
-            {user ? (
-              <div className="space-y-4">
-                <SOSButton />
+          {user ? (
+            <div className="space-y-4">
+                <SOSButton onClick={() => setMenuOpen(false)} className="w-full justify-start" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-300">
                     <User size={16} />
